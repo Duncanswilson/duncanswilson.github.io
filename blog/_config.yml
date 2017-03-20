@@ -12,9 +12,9 @@ github_username: username
 markdown: redcarpet
 markdown_ext:  markdown,mkdown,mkdn,mkd,md
 
-#sass stuff? 
+#sass stuff?
 sass:
-sass_dir: _sass
+  sass_dir: ./_sass
 
 
 redcarpet:
