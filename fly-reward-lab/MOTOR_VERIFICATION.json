@@ -1,0 +1,552 @@
+{
+  "artifact_sha256": {
+    "flyreward/model.py": "97bda28367fe72aa5041208bec06418dd74576647c81d7e1999eecaafe845a85",
+    "flyreward/motor.py": "4d06d124f0b7e52e9a4b500e61269d19ed48733f8fdd04dcf2191369ccf6b0ba",
+    "flyreward/motor_mapping.py": "8190ebf24d97ea3cdb04fd876574046755082cbe099ddd4a6e34a1c1c085eab6",
+    "flyreward/types.py": "f71950b35795c83c45c38e56db00b3b050f3311c15f15d1766bac42c0567ad58",
+    "results/comparison/results.json": "50a83896818648d1eb5d0b87bee9e0db06498dd27a2273589b2066329ff0e87a",
+    "results/extended/results.json": "0e639f01b8106c24907f6bded31345783ff364e806460aa6942e110ac909c687",
+    "results/motor/baseline/neuron_rates.npz": "dd176d32b789428b53a9d0aa82d4be4b64aefbbb316ef875b6fc4099a549144c",
+    "results/motor/baseline/result.json": "687dad41afa9814fcf88dd524d8958fa2383e0bd73728e2187b59a625c7433f6",
+    "results/motor/best_tested_combination/neuron_rates.npz": "2f0bfd9b8777c0dc6ecdad05430a7c5e4760f3cb460a4a00f20a61a08a5d7051",
+    "results/motor/best_tested_combination/result.json": "ad156885b3cd4cb6e881813c30eac499d3093cd698f40abff099fa80341536fd",
+    "results/motor/combined/neuron_rates.npz": "865325a350fb6d4767afa43dcfb37454b564a7451d6dbfde07599cebbf80e5ed",
+    "results/motor/combined/result.json": "33dfc178c8a0ce2218f8671ef6b8a404953b80ec5a549288a963263ab410e891",
+    "results/motor/combined_no_tolerance/neuron_rates.npz": "434ac79a417c97c5e97ace9b63c04fd11de29952038cc58f68ae258293535153",
+    "results/motor/combined_no_tolerance/result.json": "e0ba33f49f878c17b9c5f0849fd9f2885f13586273123aed0369c6b9abe0f7f4",
+    "results/motor/dopamine/neuron_rates.npz": "f4ce07da19d9a01476dfa3245f59044829445c6de7242fd7be15ab8175801d66",
+    "results/motor/dopamine/result.json": "25088861ffb941974c88030e1a82ecdee383a5e9021c405a6a8117dff6491679",
+    "results/motor/mapping.json": "d73f6b00028ddebdb7d1fdd7cea9351aa1b33b720f2f2f79112f950bb46b601a",
+    "results/motor/maximal_dopamine/neuron_rates.npz": "8ded49a3215f0903c28dcb7689d40ee93020ddc3a06b8c5aab3b6eb6119dc52f",
+    "results/motor/maximal_dopamine/result.json": "31763a7335e01a8da87a4b467eeabe64bcffe5f004c370c4ca769381cf326f15",
+    "results/motor/motor_mapping.json": "80fec46be7d1828f3cdcd956bb9788169a9e056a96eb7311e0524f4701ff2f85",
+    "results/motor/motor_playback.json": "94fbdad403058f9e848a2c531dad2af9363d3bbef5ac696113c3e8ecd4f71efa",
+    "results/motor/npf/neuron_rates.npz": "b33514e1010c59b8c64ee3c53fcb1797d2e456bc5c9657a0771932ee778e8c59",
+    "results/motor/npf/result.json": "eec3b9f0a19f90f03ab7748c22fccd62b8acaceaa95d8579adb1b8fabc58c6c5",
+    "results/motor/results.json": "8ec85a4b325fbb7bed309c0e04e259356572f27669d7e037cdbb64f8a6ecb924"
+  },
+  "best_tested_combination_convergence": {
+    "exactly_constant_joint_angles_in_final_window": true,
+    "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+    "maximum_joint_range_degrees_in_final_window": 0.0,
+    "maximum_neuron_rate_range_hz_in_final_window": 0.0,
+    "window_seconds": 1.0,
+    "within_0_01_degree_joint_range_in_final_window": true
+  },
+  "checks": {
+    "all_aggregate_configs_times_traces_and_metrics_identical_to_original_runs": true,
+    "all_audited_artifacts_unchanged_during_verification": true,
+    "all_channel_means_exactly_equal_mean_of_mapped_source_columns": true,
+    "all_motor_ids_and_channel_ids_resolve_to_exact_graph_indices": true,
+    "all_seven_raw_rate_matrices_verified": true,
+    "latest_motor_py_regenerates_exact_saved_joint_angles_for_all_frames": true,
+    "mapping_json_and_motor_mapping_json_semantically_identical": true,
+    "mapping_rebuilt_from_verified_original_annotations_matches_saved_mapping": true,
+    "mechanical_parameters_match_latest_motor_py": true
+  },
+  "counts": {
+    "aggregate_trace_names_per_run": 9,
+    "channel_mean_values_checked": 76968,
+    "channels": 24,
+    "individual_neuron_rates_checked": 2613705,
+    "joint_offset_values_regenerated_and_compared": 38484,
+    "joint_offsets_per_frame": 12,
+    "mapped_motor_neurons": 164,
+    "motor_neurons_per_run": 815,
+    "runs": 7,
+    "total_frames": 3207,
+    "unmapped_recorded_motor_neurons": 651
+  },
+  "global_max_absolute_joint_offset_degrees": 2.8797571439749006,
+  "graph_cache_key": "8dde907611492b22ae0c",
+  "limits": [
+    "Motor rates are outputs of a hypothesis neural model, not biological recordings.",
+    "Muscle grouping is grounded in annotations, while activation and joint-angle conversion are uncalibrated engineering assumptions.",
+    "The recorded best-tested combination settles to a stationary pose at numerical precision; no ongoing writhing is inferred.",
+    "This audit establishes saved-artifact consistency and deterministic mechanics, not neural or biomechanical validity."
+  ],
+  "mechanics": {
+    "activation": "mean motor-neuron rate per labeled muscle group divided by config.max_rate, then first-order filtering",
+    "activation_tau_seconds": 0.04,
+    "body": "fixed root, head, abdomen and wings; no assigned motor action where the map is insufficient",
+    "feedback": "one-way motor output replay; no physical contact solver, proprioception or body-to-neuron feedback",
+    "gain_radians": 1.2,
+    "initial_conditions": "muscle activation starts at normalized initial neural rate; joint offsets start at zero",
+    "joint_response": "overdamped first-order relaxation toward target; no autonomous oscillation",
+    "joint_target": "gain_radians * (flexor_activation - extensor_activation)",
+    "joint_tau_seconds": 0.12,
+    "muscle_weighting": "equal mean weighting within each group; no measured motor-unit force or muscle recruitment calibration",
+    "validation": "uncalibrated kinematic approximation; not a validated neuromechanical fly simulation"
+  },
+  "overall_status": "passed",
+  "primary_mapping_sources": [
+    {
+      "id": "malecns_annotations",
+      "supports": "Exact current neuron IDs, Traced status, motor superclass, named types, leg subclasses, soma side, neuromere and exit nerve",
+      "title": "MaleCNS v1.0 official annotations",
+      "url": "https://male-cns.janelia.org/download/"
+    },
+    {
+      "id": "malecns_typing",
+      "supports": "Instance labels combine type and somaSide for these neurons; their suffix is not independent nerve-side evidence",
+      "title": "Sexual dimorphism in the complete connectome of the Drosophila male central nervous system",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12636603/"
+    },
+    {
+      "id": "manc_motor_targets",
+      "limits": "MANC is a different specimen; targets were assigned by morphology and homology, not peripheral muscles observed in MaleCNS",
+      "supports": "Figures 5 and 7: motor type and nerve nomenclature, fl/ml/hl categories, muscle-target matching and serial homology; Figure 13: flexor and accessory flexor have similar basic joint action",
+      "title": "Cheong et al., Organization of circuits linking descending input to motor output in MANC (2026)",
+      "url": "https://elifesciences.org/articles/96084"
+    },
+    {
+      "id": "ipsilateral_leg_anatomy",
+      "supports": "Figure 1 and results describe segment-specific ipsilateral leg-MN projection: T1 foreleg, T2 middle leg, T3 hind leg",
+      "title": "Venkatasubramanian et al., Stereotyped terminal axon branching of leg motor neurons (2019)",
+      "url": "https://elifesciences.org/articles/42692"
+    },
+    {
+      "id": "tibia_motor_physiology",
+      "supports": "Identified tibia flexor motor neurons cause flexion with different force per spike; a uniform rate-to-force conversion is not measured biology",
+      "title": "Azevedo et al., A size principle for recruitment of Drosophila leg motor neurons (2020)",
+      "url": "https://elifesciences.org/articles/56754"
+    },
+    {
+      "id": "fanc_motor_atlas",
+      "supports": "Motor target atlas links CNS reconstructions to leg muscles using genetic lines and X-ray nanotomography",
+      "title": "Azevedo et al., Connectomic reconstruction of a female Drosophila ventral nerve cord (2024)",
+      "url": "https://www.nature.com/articles/s41586-024-07389-x"
+    }
+  ],
+  "runs": [
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 48024,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": true,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.0,
+        "maximum_neuron_rate_range_hz_in_final_window": 0.0,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": true
+      },
+      "duration_seconds": 20.0,
+      "final_joint_offsets_degrees": [
+        -0.7313851605314072,
+        -1.170549733012808,
+        0.13438635793275097,
+        -2.369143020644391,
+        0.6482770413980593,
+        -0.5330110175302398,
+        -2.8797571439749006,
+        -0.8722539993206969,
+        0.5723780851017497,
+        -1.1196008533862993,
+        1.1454509916873834,
+        -0.4957817801515553
+      ],
+      "frames": 2001,
+      "id": "best_tested_combination",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 2.8797571439749006,
+      "max_frame_change_degrees": 0.0773587283722528,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "2f0bfd9b8777c0dc6ecdad05430a7c5e4760f3cb460a4a00f20a61a08a5d7051",
+      "raw_rates_shape": [
+        2001,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    },
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 4824,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": false,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.006521167573245902,
+        "maximum_neuron_rate_range_hz_in_final_window": 0.11890697479248047,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": true
+      },
+      "duration_seconds": 2.0,
+      "final_joint_offsets_degrees": [
+        -0.05898238467317796,
+        -0.16729910780066568,
+        0.23636561312280366,
+        -0.6678213881641029,
+        0.540631792879475,
+        0.22360517251632148,
+        -1.4615887173110735,
+        -0.1426095133608068,
+        0.07344138217791399,
+        -0.03773297611420635,
+        0.32067451016573784,
+        0.24394116395018425
+      ],
+      "frames": 201,
+      "id": "baseline",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 1.4622615130337526,
+      "max_frame_change_degrees": 0.07735872576298371,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "dd176d32b789428b53a9d0aa82d4be4b64aefbbb316ef875b6fc4099a549144c",
+      "raw_rates_shape": [
+        201,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    },
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 4824,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": false,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.03216198269658778,
+        "maximum_neuron_rate_range_hz_in_final_window": 1.3645563125610352,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": false
+      },
+      "duration_seconds": 2.0,
+      "final_joint_offsets_degrees": [
+        -0.07158021255412168,
+        -0.17674916043351754,
+        0.2271329884608584,
+        -0.6816627818094272,
+        0.5614764183846142,
+        0.21090745268345787,
+        -1.5060857444643634,
+        -0.1571314155684879,
+        0.07877601104698255,
+        -0.05416949975155808,
+        0.32025949845587903,
+        0.2366638143564755
+      ],
+      "frames": 201,
+      "id": "dopamine",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 1.5386256968235341,
+      "max_frame_change_degrees": 0.07735872576298371,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "f4ce07da19d9a01476dfa3245f59044829445c6de7242fd7be15ab8175801d66",
+      "raw_rates_shape": [
+        201,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    },
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 4824,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": false,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.09223033037131485,
+        "maximum_neuron_rate_range_hz_in_final_window": 0.7266979217529297,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": false
+      },
+      "duration_seconds": 2.0,
+      "final_joint_offsets_degrees": [
+        -0.44299346002345563,
+        -0.7523117399584514,
+        0.1877860366035827,
+        -1.6634479613628876,
+        0.572187286776204,
+        -0.20841796192500905,
+        -2.241979279602497,
+        -0.5553053770742238,
+        0.3626413487138018,
+        -0.6583797651582405,
+        0.8144172533046955,
+        -0.18720130567882218
+      ],
+      "frames": 201,
+      "id": "npf",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 2.2422263174893287,
+      "max_frame_change_degrees": 0.07735872634282127,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "b33514e1010c59b8c64ee3c53fcb1797d2e456bc5c9657a0771932ee778e8c59",
+      "raw_rates_shape": [
+        201,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    },
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 4824,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": false,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.08103320030779572,
+        "maximum_neuron_rate_range_hz_in_final_window": 0.9874610900878906,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": false
+      },
+      "duration_seconds": 2.0,
+      "final_joint_offsets_degrees": [
+        -0.44886645667423036,
+        -0.7564093137612355,
+        0.18318898928501257,
+        -1.6699080449987904,
+        0.5821377341924426,
+        -0.21386897566436322,
+        -2.2618533857929726,
+        -0.5617466830348885,
+        0.3650220196627228,
+        -0.6658802714796248,
+        0.814271638298888,
+        -0.19034858308508062
+      ],
+      "frames": 201,
+      "id": "combined",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 2.268274292799949,
+      "max_frame_change_degrees": 0.07735872634282127,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "865325a350fb6d4767afa43dcfb37454b564a7451d6dbfde07599cebbf80e5ed",
+      "raw_rates_shape": [
+        201,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    },
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 4824,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": false,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.09779134857071417,
+        "maximum_neuron_rate_range_hz_in_final_window": 0.915802001953125,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": false
+      },
+      "duration_seconds": 2.0,
+      "final_joint_offsets_degrees": [
+        -0.4728415102376061,
+        -0.7765194075781716,
+        0.16729656890431413,
+        -1.6986800961676711,
+        0.6255307560020603,
+        -0.24172629656839204,
+        -2.3527631046756015,
+        -0.5935809547060772,
+        0.37744682497441623,
+        -0.7010268345313955,
+        0.8135046501804952,
+        -0.20554899661800977
+      ],
+      "frames": 201,
+      "id": "combined_no_tolerance",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 2.3527631046756015,
+      "max_frame_change_degrees": 0.07735872634282127,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "434ac79a417c97c5e97ace9b63c04fd11de29952038cc58f68ae258293535153",
+      "raw_rates_shape": [
+        201,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    },
+    {
+      "aggregate_config_and_metrics_identical_to_original": true,
+      "aggregate_trace_max_absolute_differences": {
+        "dopamine_concentration": 0.0,
+        "dopamine_population_rate_hz": 0.0,
+        "dopamine_reward_proxy": 0.0,
+        "dopamine_sensitivity": 0.0,
+        "mean_rate_hz": 0.0,
+        "npf_exposure_proxy": 0.0,
+        "probe_on": 0.0,
+        "responsiveness_hz": 0.0,
+        "saturation_fraction": 0.0
+      },
+      "all_channel_means_exactly_match_source_columns": true,
+      "all_frames_aligned": true,
+      "all_motor_ids_and_neuron_metadata_match_graph": true,
+      "channel_mean_max_absolute_difference_hz": 0.0,
+      "channel_mean_values_checked": 4824,
+      "convergence": {
+        "exactly_constant_joint_angles_in_final_window": false,
+        "interpretation": "Finite-window numerical settling only; not an analytic stability or biological behavior claim",
+        "maximum_joint_range_degrees_in_final_window": 0.011786692148858679,
+        "maximum_neuron_rate_range_hz_in_final_window": 0.2293691635131836,
+        "window_seconds": 1.0,
+        "within_0_01_degree_joint_range_in_final_window": false
+      },
+      "duration_seconds": 2.0,
+      "final_joint_offsets_degrees": [
+        -0.1006650261929868,
+        -0.20119894666340826,
+        0.2084551461066122,
+        -0.7167825239472504,
+        0.6141256204808084,
+        0.17709249584766568,
+        -1.6167052083388909,
+        -0.19581808738148757,
+        0.09261907291374989,
+        -0.09716070662602275,
+        0.3185928538508556,
+        0.21798652701793078
+      ],
+      "frames": 201,
+      "id": "maximal_dopamine",
+      "latest_motor_py_regenerates_identical_joint_angles": true,
+      "max_absolute_joint_offset_degrees": 1.6167052083388909,
+      "max_frame_change_degrees": 0.07735872576298371,
+      "raw_rates_checksum_matches_recorded_manifests": true,
+      "raw_rates_dtype": "float32",
+      "raw_rates_sha256": "8ded49a3215f0903c28dcb7689d40ee93020ddc3a06b8c5aab3b6eb6119dc52f",
+      "raw_rates_shape": [
+        201,
+        815
+      ],
+      "recorded_motor_neurons": 815,
+      "regenerated_angle_max_absolute_difference_radians": 0.0
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Read-only independent verification of saved motor outputs, identities, channel means, unchanged neural aggregates, and regenerated joint mechanics; no neural simulation rerun",
+  "source_code_version_comparison": {
+    "motor.py": {
+      "matches_recorded_run_source": false,
+      "recorded_sha256": "d3d32aa87e9d1c23b3832e8eb33169f0f7f86ff23966dcdcffa1fe33662a9de9",
+      "verified_current_sha256": "4d06d124f0b7e52e9a4b500e61269d19ed48733f8fdd04dcf2191369ccf6b0ba"
+    },
+    "motor_mapping.py": {
+      "matches_recorded_run_source": true,
+      "recorded_sha256": "8190ebf24d97ea3cdb04fd876574046755082cbe099ddd4a6e34a1c1c085eab6",
+      "verified_current_sha256": "8190ebf24d97ea3cdb04fd876574046755082cbe099ddd4a6e34a1c1c085eab6"
+    },
+    "types.py": {
+      "matches_recorded_run_source": true,
+      "recorded_sha256": "f71950b35795c83c45c38e56db00b3b050f3311c15f15d1766bac42c0567ad58",
+      "verified_current_sha256": "f71950b35795c83c45c38e56db00b3b050f3311c15f15d1766bac42c0567ad58"
+    }
+  },
+  "verified_at_utc": "2026-09-14T20:04:34.541674+00:00",
+  "verified_connectome_source_hashes": {
+    "body-annotations-male-cns-v1.0-minconf-0.5.feather": {
+      "bytes": 14483314,
+      "md5": "50a7718770c57220f160ba4f431ab89e",
+      "sha256": "2177e246113e4cfbf1e7772ec37c6da1955ff22e8063d0b1f833101f99a9a3b2"
+    },
+    "body-neurotransmitters-male-cns-v1.0.feather": {
+      "bytes": 43282834,
+      "md5": "3d842b12fe5c49eefade528d7dd24a1f",
+      "sha256": "95c9289220663abeb3409f3ad9e5a7f8a53f8093f5139d15502cd08da8879621"
+    },
+    "connectome-weights-male-cns-v1.0-minconf-0.5.feather": {
+      "bytes": 1051241946,
+      "md5": "f30e9dcca25cfd021bf1e7b3d975599e",
+      "sha256": "e35da783d1c686b2b58b3b87cd6a403ae43bfcfba8bff28e08ef752c1a56afc1"
+    }
+  }
+}
