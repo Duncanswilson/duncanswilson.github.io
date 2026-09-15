@@ -11,6 +11,8 @@
   const finite=v=>typeof v==='number'&&Number.isFinite(v);
   let latest=null,metadata=null,connection=null,client=null,drawQueued=false;
   let width=0,height=0;
+  const motorSamples=[];
+  let traceChannel=-1;
   const background=document.createElement('canvas');
   const bg=background.getContext('2d');
   const backend=window.FlyLiveConfig?.endpoint||window.location.origin;
@@ -135,7 +137,7 @@
       const fx=width*.69,fy=height*.68,fs=scale*.78;
       const inputs=drawDevice(width*.095,height*.48,{dopamine:latest.dopamine,npf:latest.npf,rate:latest.dopamine_rate_hz},deviceScale);
       ctx.save();ctx.translate(fx,fy);ctx.scale(fs,fs);
-      // Geometry is unchanged: no animation clock or invented motion is added.
+      // Both joint geometry and body translation come from this server state.
       const pose=FlyActor.draw(ctx,{motorPose:latest.motorPose,dopamine:latest.dopamine,npf:latest.npf});
       ctx.restore();
       pose.ports.forEach((port,i)=>drawWire(inputs[i],{x:fx+port.x*fs,y:fy+port.y*fs},i));
@@ -168,10 +170,27 @@
 
   }
 
+  function drawMotorTrace(frame, receipt){
+    if(traceChannel<0)return;
+    if(receipt.newRun || receipt.resumed)motorSamples.length=0;
+    const sample={t:frame.sim_time,rate:frame.channel_rates_hz[traceChannel]};
+    motorSamples.push(sample);
+    if(motorSamples.length>96)motorSamples.shift();
+    const plot=$('motor-trace'),c=plot.getContext('2d');
+    const low=Math.min(...motorSamples.map(s=>s.rate)), high=Math.max(...motorSamples.map(s=>s.rate));
+    const span=Math.max(high-low,.01),timeSpan=Math.max(sample.t-motorSamples[0].t,.01);
+    c.fillStyle='#fff';c.fillRect(0,0,plot.width,plot.height);c.fillStyle='#000';
+    // Only actual received samples are painted. Pixel connecting segments are
+    // a graph of these samples, never additional simulated states.
+    c.beginPath();c.strokeStyle='#000';c.lineWidth=1;
+    motorSamples.forEach((s,i)=>{const x=2+(s.t-motorSamples[0].t)/timeSpan*(plot.width-5), y=plot.height-3-(s.rate-low)/span*(plot.height-6);i?c.lineTo(x,y):c.moveTo(x,y);});c.stroke();
+    $('motor-trace-range').textContent=`${low.toFixed(3)}–${high.toFixed(3)} Hz · ${timeSpan.toFixed(2)} s simulated · auto scale`;
+  }
+
   function modelRecord(){
     $('model-record').textContent=JSON.stringify({run_id:latest?.run_id??metadata?.run_id??null,stream_id:latest?.stream_id??null,
       model:metadata?.model??null,config:metadata?.config??null,mechanics:metadata?.mechanics??null,
-      assumptions:metadata?.assumptions??null,recorded_neuron_count:metadata?.recorded_neuron_count??null,
+      circuit:metadata?.circuit??null,body:metadata?.body??null,assumptions:metadata?.assumptions??null,recorded_neuron_count:metadata?.recorded_neuron_count??null,
       mapped_neuron_count:metadata?.mapped_neuron_count??null},null,2);
   }
   function updateConnection(value){
@@ -219,11 +238,13 @@
     client=FlyLive.connect(backend,{
       staleAfterMs:window.FlyLiveConfig?.staleAfterMs??15000,
       onMeta(meta){metadata=meta;
+        traceChannel=meta.motor_mode==='cpg'?meta.channels.findIndex(ch=>ch.leg==='LF'&&ch.joint==='trochanter'&&ch.action==='flexor'):-1;
+        $('motor-trace-panel').hidden=traceChannel<0;
         const recorded=meta.recorded_neuron_count,mapped=meta.mapped_neuron_count;
         $('motor-counts').textContent=Number.isInteger(recorded)&&Number.isInteger(mapped)?`${recorded} MOTOR NEURONS · ${mapped} MAPPED TO LEG JOINTS`:'MOTOR COUNTS NOT PROVIDED';
         modelRecord();updateReadout();scheduleDraw();},
       onState(frame,receipt){
-        latest=frame;
+        latest=frame;drawMotorTrace(frame,receipt);
         $('loading').hidden=true;updateReadout();if(receipt.newRun||receipt.resumed)modelRecord();scheduleDraw();},
       onStatus:updateConnection,
     });

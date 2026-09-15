@@ -102,6 +102,24 @@
     };
   }
 
+  // Orthographic camera: x=head-to-tail, y=anatomical left, z=height.
+  // The same projection is applied to every simulated endpoint and the floor.
+  const projectBodyPoint = p => [p[0] * 85 + p[1] * 22, p[1] * 48 - p[2] * 85];
+  function physicalKinematics(input) {
+    const origin = projectBodyPoint(input.bodyPositionMm);
+    const posed = {};
+    for (const spec of legs) {
+      const points = input.legPointsMm[spec.id];
+      const local = key => subtract(projectBodyPoint(points[key]), origin);
+      const hip = local('hip'), knee = local('knee'), foot = local('foot');
+      // The distal link includes the tarsus in the reduced plant. Its painted
+      // subdivision is collinear, not an additional animated joint.
+      const ankle = [knee[0] + .78 * (foot[0] - knee[0]), knee[1] + .78 * (foot[1] - knee[1])];
+      posed[spec.id] = {base:hip, hip, knee, ankle, foot};
+    }
+    return {legs:posed, origin};
+  }
+
   function drawShadow(ctx, roll, amplitude) {
     ctx.save();
     ctx.translate(18 + roll * 18, 39);
@@ -466,25 +484,35 @@
     // missing groups NEVER fall back to the authored oscillatory animation.
     const hasMotorPose = Object.prototype.hasOwnProperty.call(options, "motorPose");
     const motor = hasMotorPose ? motorKinematics(options.motorPose) : null;
+    const physical = hasMotorPose && options.motorPose?.legPointsMm ? physicalKinematics(options.motorPose) : null;
     const reduced = Boolean(options.reducedMotion);
     const t = hasMotorPose || reduced ? 0 : number(options.time, 0);
     const motion = hasMotorPose || reduced ? 0 : clamp(number(options.motion, 0.35), 0, 1);
     const dopamine = clamp(number(options.dopamine, 0), 0, 1);
     const npf = clamp(number(options.npf, 0), 0, 1);
     const roll = hasMotorPose ? motor.bodyRoll : motion * (Math.sin(t * 1.9) * 0.19 + Math.sin(t * 0.77) * 0.055);
-    const bodyY = hasMotorPose ? 0 : motion * (Math.cos(t * 1.9) - 1) * 3.2;
-    const bodyX = hasMotorPose ? 0 : motion * Math.sin(t * 1.9) * 2.4;
+    const bodyY = physical ? physical.origin[1] : hasMotorPose ? 0 : motion * (Math.cos(t * 1.9) - 1) * 3.2;
+    const bodyX = physical ? physical.origin[0] : hasMotorPose ? 0 : motion * Math.sin(t * 1.9) * 2.4;
     ctx.save();
-    drawShadow(ctx, roll, motion);
+    if (!physical) drawShadow(ctx, roll, motion);
+    else {
+      // A body shadow projected onto z=0; no fake contact patches under lifted feet.
+      const center = projectBodyPoint([options.motorPose.bodyPositionMm[0],options.motorPose.bodyPositionMm[1],0]);
+      ellipse(ctx,center[0],center[1],95,20,0,'rgba(0,0,0,.14)');
+    }
     ctx.translate(bodyX, bodyY);
     ctx.rotate(roll);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    const poses = legs.map(spec => hasMotorPose ? motor.legs[spec.id] : legPose(spec, t, motion));
+    const poses = legs.map(spec => physical ? physical.legs[spec.id] : hasMotorPose ? motor.legs[spec.id] : legPose(spec, t, motion));
     // Soft contact patches under feet keep the moving anatomy on the floor.
     for (let i = 0; i < poses.length; i++) {
       const foot = poses[i].foot;
-      ellipse(ctx, foot[0] + 2, foot[1] + 4, 9, 3, 0, "rgba(0,0,0,.12)");
+      if (!physical) ellipse(ctx, foot[0] + 2, foot[1] + 4, 9, 3, 0, "rgba(0,0,0,.12)");
+      else if (options.motorPose.legPointsMm[legs[i].id].foot[2] <= 0) {
+        const floor = projectBodyPoint([...options.motorPose.legPointsMm[legs[i].id].foot.slice(0,2),0]);
+        ellipse(ctx,floor[0]-bodyX,floor[1]-bodyY,5,2,0,'rgba(0,0,0,.3)');
+      }
     }
     for (let i = 0; i < 3; i++) drawLeg(ctx, poses[i], false);
     drawWing(ctx, 7, -30, -0.36, 0.85, 0.75, t, motion, 1.5, hasMotorPose ? motor.wingAngles.R : undefined);
@@ -510,9 +538,9 @@
       ports: anchors.ports.map(port => Object.assign(transformed(port, bodyX, bodyY, roll), {color: port.color})),
       head: transformed(anchors.head, bodyX, bodyY, roll),
       legJoints,
-      motionSource: hasMotorPose ? "explicit_motor_pose" : "authored_animation"
+      motionSource: physical ? "simulated_body_geometry" : hasMotorPose ? "explicit_motor_pose" : "authored_animation"
     };
   }
 
-  window.FlyActor = Object.freeze({draw, motorKinematics});
+  window.FlyActor = Object.freeze({draw, motorKinematics, physicalKinematics, projectBodyPoint});
 })();

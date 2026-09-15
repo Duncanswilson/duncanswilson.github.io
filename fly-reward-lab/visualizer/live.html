@@ -33,6 +33,7 @@
           <div class="signal-block"><div class="signal-row"><span><i class="swatch npf" aria-hidden="true"></i>NPF signal</span><strong id="npf-value">—</strong></div><div class="meter npf-meter"><div id="npf-meter"></div></div></div>
           <div class="rate-row"><span>Motor population mean</span><strong><span id="rate-value">—</span> <small>Hz</small></strong></div>
           <p class="readout-note">DA / NPF values use model units.</p>
+          <div id="motor-trace-panel" class="motor-trace-panel" hidden><span>LF TROCHANTER FLEXORS</span><canvas id="motor-trace" width="192" height="58" role="img" aria-label="Recent received left-front motor channel rates in hertz, with an autoscaled vertical axis."></canvas><p id="motor-trace-range">Waiting for motor samples.</p></div>
           <div class="readout-stamp" aria-hidden="true"><svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path d="M8 4h8v4h4v6h8V8h4V4h8v10h-4v6h-6v4h6v4h8v4H34v-4h-4v8h6v4h4v4h-8v-4h-4v4h-8v-4h-4v4H8v-4h4v-4h6v-8h-4v4H4v-4h8v-4h6v-4h-6v-6H8z"/></svg><span>STATE → POSE</span></div>
         </aside>
         <div class="scene-bottom"><span class="scene-label"><span class="tiny-cross" aria-hidden="true">+</span><span id="motor-counts">WAITING FOR NEURON MAPPING</span></span><button id="scene-mode" class="scene-button" type="button" aria-pressed="false">Hide labels</button></div>
@@ -46,12 +47,12 @@
           <div><span>Server uptime</span><strong id="uptime-value">—</strong></div>
           <div><span>Server wall clock</span><strong id="server-clock">—</strong></div>
         </div>
-        <p class="live-mechanics">Motor neurons → antagonistic muscles → joints <span>Latest server pose. No playback clock.</span></p>
+        <p class="live-mechanics">Motor neurons → muscle torques → body &amp; floor <span>Latest server pose. No playback clock.</span></p>
         <div id="model-details" class="model-notes"><p><a href="model-notes.html">Read: reward, the Good Drug Guide &amp; the assumptions about experience →</a></p><details class="live-details"><summary>Engine, endpoint &amp; model assumptions</summary><p id="backend-endpoint"></p><pre id="model-record">Waiting for /api/meta.</pre></details></div>
       </section>
       <div class="window-foot"><span>LIVE CONNECTOME / ONE RUNNING NETWORK</span><span class="resize-grip" aria-hidden="true"></span></div>
     </section>
-    <footer><p>The server advances the neural simulation; this page observes it. Motor-to-muscle and joint mechanics are assumptions. Unmapped body parts remain still, and steady outputs produce a steady pose. A stale or disconnected stream holds the last received pose.</p><span>READ ONLY / LIVE STATE</span></footer>
+    <footer><p>The server advances the neural simulation; this page observes it. The front-leg circuit uses published rate equations; muscle, body and contact parameters are assumptions. The renderer projects the server’s computed leg geometry. Head, abdomen and wings have no independent actuation. A stale or disconnected stream holds the last received pose.</p><span>READ ONLY / LIVE STATE</span></footer>
     <noscript><p class="live-error">Enable JavaScript to receive the live stream. No recorded replay is substituted for a connection.</p></noscript>
   </main>
   <script src="live-config.js"></script>

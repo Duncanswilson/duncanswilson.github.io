@@ -71,6 +71,9 @@ class LiveSimulation:
 
     CHECKPOINT_FORMAT = "flyreward.live-state"
     CHECKPOINT_VERSION = 1
+    MOTOR_MODE = "rate"
+    STATE_KEYS = frozenset({"basal", "rates", "dopamine", "sensitivity", "npf",
+                            "muscle_activations", "joint_offsets"})
 
     def __init__(self, graph: Graph, config: SimulationConfig, mapping: dict):
         _validate_config(config)
@@ -201,10 +204,27 @@ class LiveSimulation:
         self.rates += self._alpha_rate * (target - self.rates)
         np.clip(self.rates, 0, self.config.max_rate, out=self.rates)
         _clamp_dopamine(self.rates, self.dopamine_mask, self.config)
+        self._advance_circuit()
         self.channel_rates = self._channel_means()
         # Use the same difference of recorded frame times as motor_playback.
         # Neural dynamics above always use the original configured dt.
         dt = (self.nstep + 1) * self.config.dt - self.nstep * self.config.dt
+        self._advance_motor(dt)
+        self.nstep += 1
+        if not all(np.isfinite(value).all() for value in (
+            self.rates, self.dopamine, self.sensitivity, self.muscle_activations, self.joint_offsets
+        )) or not np.isfinite(self.npf):
+            raise FloatingPointError("Nonfinite live simulation state; no snapshot should be served")
+
+    def _advance_circuit(self) -> None:
+        """Optional neural subsystem hook; rate mode retains the primary dynamics.
+
+        Subclasses write their actual neuron rates into ``self.rates`` here,
+        before channel averaging and the next recurrent network update.
+        """
+
+    def _advance_motor(self, dt: float) -> None:
+        """Advance the baseline one-way motor bridge without changing its math."""
         self.muscle_activations += (self.channel_rates / self.config.max_rate - self.muscle_activations) * -np.expm1(-dt / self.mechanics["activation_tau_seconds"])
         for leg_idx, leg in enumerate(LEGS):
             for joint_idx, joint in enumerate(JOINTS):
@@ -213,11 +233,6 @@ class LiveSimulation:
                 target_angle = self.mechanics["gain_radians"] * (flex - extend)
                 column = 2 * leg_idx + joint_idx
                 self.joint_offsets[column] += (target_angle - self.joint_offsets[column]) * -np.expm1(-dt / self.mechanics["joint_tau_seconds"])
-        self.nstep += 1
-        if not all(np.isfinite(value).all() for value in (
-            self.rates, self.dopamine, self.sensitivity, self.muscle_activations, self.joint_offsets
-        )) or not np.isfinite(self.npf):
-            raise FloatingPointError("Nonfinite live simulation state; no snapshot should be served")
 
     def snapshot(self, include_motor_rates: bool = False) -> dict:
         """Return JSON-safe current values, without advancing or retaining history."""
@@ -273,6 +288,7 @@ class LiveSimulation:
         arrays = self._state_arrays()
         self._validate_state_arrays(arrays)
         metadata = {"format": self.CHECKPOINT_FORMAT, "version": self.CHECKPOINT_VERSION,
+                    "motor_mode": self.MOTOR_MODE,
                     "config": asdict(self.config), "nstep": self.nstep, "run_id": self.run_id,
                     "fingerprints": self.fingerprints,
                     "state_sha256": _digest_arrays(arrays)}
@@ -299,8 +315,7 @@ class LiveSimulation:
 
     @classmethod
     def _read_checkpoint(cls, path) -> tuple[dict, dict[str, np.ndarray]]:
-        expected = {"metadata", "basal", "rates", "dopamine", "sensitivity", "npf",
-                    "muscle_activations", "joint_offsets"}
+        expected = cls.STATE_KEYS | {"metadata"}
         with np.load(Path(path), allow_pickle=False) as archive:
             if set(archive.files) != expected:
                 raise ValueError("Checkpoint has missing or unexpected state arrays")
@@ -311,6 +326,8 @@ class LiveSimulation:
             arrays = {key: archive[key].copy() for key in expected - {"metadata"}}
         if metadata.get("format") != cls.CHECKPOINT_FORMAT or metadata.get("version") != cls.CHECKPOINT_VERSION:
             raise ValueError("Unsupported live checkpoint format/version")
+        if metadata.get("motor_mode", "rate") != cls.MOTOR_MODE:
+            raise ValueError("Checkpoint motor mode does not match this simulation")
         if metadata.get("checkpoint_sha256") != _digest_json({key: value for key, value in metadata.items() if key != "checkpoint_sha256"}):
             raise ValueError("Checkpoint metadata checksum mismatch")
         if metadata.get("state_sha256") != _digest_arrays(arrays):

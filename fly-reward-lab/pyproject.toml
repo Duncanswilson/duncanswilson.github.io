@@ -22,3 +22,6 @@ include = ["flyreward*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.setuptools.package-data]
+flyreward = ["assets/*.json"]

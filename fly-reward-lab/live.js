@@ -59,6 +59,18 @@
         if (!finite(angle)) throw new Error("Nonfinite wing angle");
       }
     }
+    if ('bodyPositionMm' in value.motorPose || 'legPointsMm' in value.motorPose) {
+      const vector = p => Array.isArray(p) && p.length === 3 && p.every(finite);
+      if (!vector(value.motorPose.bodyPositionMm) || !record(value.motorPose.legPointsMm)) {
+        throw new Error('Invalid simulated body geometry');
+      }
+      for (const id of legIds) {
+        const points = value.motorPose.legPointsMm[id];
+        if (!record(points) || !['hip','knee','foot'].every(key => vector(points[key]))) {
+          throw new Error('Invalid simulated leg endpoints: ' + id);
+        }
+      }
+    }
     for (const key of ["channel_rates_hz", "motor_rates_hz"]) {
       if (key === "motor_rates_hz" && !(key in value)) continue;
       if (!Array.isArray(value[key]) || (key === "channel_rates_hz" && value[key].length !== 24) ||

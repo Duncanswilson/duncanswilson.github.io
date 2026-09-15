@@ -6,6 +6,7 @@
 
 The continuous simulator and deployment code are committed directly on the repository's default branch, `master`:
 
+- [Front-leg circuit](flyreward/cpg.py), [hybrid integration](flyreward/cpg_live.py), and [torque/contact body](flyreward/body.py). See [circuit methods and limitations](CPG_MODEL.md).
 - [Neuron updates and neuromodulatory inputs](flyreward/live_model.py): `LiveSimulation._step_once()` adds dopamine/NPF modulation to each neural step.
 - [Dopamine dynamics](flyreward/model.py): anatomical projections, dopamine firing clamps, clearance and sensitivity.
 - [Server and fixed input settings](flyreward/server.py): `continuous_config()` configures the running model; the server exposes read-only HTTP/SSE observations.
@@ -19,7 +20,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest
 ```
 
-The [cloud backend archive](cloud/fly-backend.tar.gz) is retained unchanged for installers that verify its checksum. Its Python backend matches the unpacked source. The unpacked `visualizer/` contains the current FlyPaint design; the archive retains its original viewer. GitHub Pages serves the frontend only; merging source does not redeploy the running VPS.
+The [cloud backend archive](cloud/fly-backend.tar.gz) is retained unchanged for installers that verify its checksum. It predates the CPG and body implementation; deploy current source using [the versioned CPG rollout](deploy/CPG_ROLLOUT.md). The unpacked `visualizer/` contains the current FlyPaint design; the archive retains its original viewer. GitHub Pages serves the frontend only; merging source does not redeploy the running VPS.
 
 The live page observes an independently running server using read-only HTTPS requests and server-sent events. It displays actual model motor states, connection status, and simulated time. A lost or stale connection holds the last received pose and displays its status.
 

@@ -26,7 +26,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .data import download_data, load_graph
 from .live_model import LiveSimulation
-from .motor import LEGS, MECHANICS
+from .motor import LEGS
 from .motor_mapping import build_motor_mapping
 from .types import SimulationConfig
 
@@ -35,12 +35,21 @@ PUBLIC_ORIGINS = ["https://duncanscottwilson.com", "https://www.duncanscottwilso
                   "https://duncanswilson.github.io"]
 
 
-def continuous_config() -> SimulationConfig:
-    """Fixed input configuration used by the previously published best run.
+def continuous_config(motor_mode: str = "rate") -> SimulationConfig:
+    """Return explicit fixed inputs for the selected live neural dynamics.
 
     These are idealized model parameters, not pharmacological doses or a
     validated measure of pleasure. duration is provenance, never a live cutoff.
     """
+    if motor_mode not in {"rate", "cpg"}:
+        raise ValueError("motor_mode must be rate or cpg")
+    if motor_mode == "cpg":
+        # Holding DA firing at 100 Hz with a 200 Hz network ceiling changes
+        # normalized dopamine release as well as motor normalization. This is
+        # a distinct model configuration, not a continuation of the old run.
+        return SimulationConfig(duration=20, dt=0.01, seed=7, preset="continuous_front_cpg",
+                                dopamine_drive=0.5, reuptake_factor=0.1, npf_drive=1,
+                                tolerance=False, max_rate=200, network_gain=0.6, record_every=1)
     return SimulationConfig(duration=20, dt=0.01, seed=7, preset="continuous_best_tested",
                             dopamine_drive=1, reuptake_factor=0.1, npf_drive=1,
                             tolerance=False, max_rate=100, network_gain=0.6, record_every=1)
@@ -173,19 +182,26 @@ class SimulationService:
             return self.step, self.neurons_json if neurons else self.state_json
 
 
-def graph_factory(data_dir: Path, download=False):
+def graph_factory(data_dir: Path, download=False, motor_mode: str = "rate"):
+    config = continuous_config(motor_mode)
     def factory():
         if download:
             download_data(data_dir)
         graph = load_graph(data_dir)
         mapping = build_motor_mapping(data_dir, graph)
-        engine = LiveSimulation(graph, continuous_config(), mapping)
+        if motor_mode == "cpg":
+            from .cpg_live import CPGSimulation
+            engine = CPGSimulation(graph, config, mapping)
+        else:
+            engine = LiveSimulation(graph, config, mapping)
         metadata = {
-            "model": "MaleCNS persistent rate hypothesis model",
+            "model": ("MaleCNS hybrid front-leg CPG and rate hypothesis model" if motor_mode == "cpg"
+                      else "MaleCNS persistent rate hypothesis model"),
+            "motor_mode": motor_mode,
             "neuron_count": len(graph.ids), "directed_edge_count": int(graph.connectivity.nnz),
             "recorded_neuron_count": len(mapping["motor_neuron_ids"]),
             "mapped_neuron_count": len({int(body) for ch in mapping["channels"] for body in ch["body_ids"]}),
-            "legs": list(LEGS), "channels": mapping["channels"], "mechanics": MECHANICS,
+            "legs": list(LEGS), "channels": mapping["channels"], "mechanics": engine.mechanics,
             "assumptions": [
                 "Neuromodulation is an idealized hypothesis; dopamine is not a measurement of pleasure.",
                 "Motor rates are current simulated neuron outputs. Muscles and joints use uncalibrated mechanics.",
@@ -196,11 +212,21 @@ def graph_factory(data_dir: Path, download=False):
             "source": "https://male-cns.janelia.org/download/", "license": "CC-BY-4.0",
             "attribution": "MaleCNS collaboration; see the source dataset and published model documentation.",
         }
+        if motor_mode == "cpg":
+            metadata["circuit"] = engine.circuit.metadata()
+            metadata["body"] = engine.body.metadata()
+            metadata["assumptions"] = [
+                "Hybrid neural model: the front-leg CPG subsystem owns its selected actual neuron rates.",
+                "The CPG drives the surrounding rate network; returned network input and DA/NPF modulation are not applied inside the CPG.",
+                "The 200 Hz rate-network ceiling with dopamine drive 0.5 holds DA firing at 100 Hz but changes normalized DA release and motor normalization.",
+                "Circuit and body parameters are model assumptions, not validated whole-animal behavior or evidence of pleasure.",
+                "A crash can lose progress since the last checkpoint. A restart changes stream_id.",
+            ]
         return engine, metadata
     return factory
 
 
-async def stream_states(service, request, *, poll_seconds=0.1, heartbeat_seconds=10):
+async def stream_states(service, request, *, poll_seconds=0.05, heartbeat_seconds=10):
     last_step = -1
     last_send = time.monotonic()
     yield "retry: 2000\n\n"
@@ -315,10 +341,13 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--checkpoint-seconds", type=float, default=60)
+    parser.add_argument("--motor-mode", choices=("rate", "cpg"), default="rate",
+                        help="Neural dynamics: original rate model or explicit hybrid front-leg CPG model")
     parser.add_argument("--viewer-dir", type=Path, default=Path(__file__).resolve().parent.parent / "visualizer")
     args = parser.parse_args()
-    service = SimulationService(graph_factory(args.data_dir, args.download),
-                                args.state_dir / "checkpoint.npz", checkpoint_seconds=args.checkpoint_seconds)
+    service = SimulationService(graph_factory(args.data_dir, args.download, args.motor_mode),
+                                args.state_dir / "checkpoint.npz", batch_steps=1 if args.motor_mode == "cpg" else 5,
+                                checkpoint_seconds=args.checkpoint_seconds)
     import uvicorn
 
     class ShutdownAwareServer(uvicorn.Server):

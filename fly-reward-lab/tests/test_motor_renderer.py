@@ -125,5 +125,23 @@ for (const pose of poses) {
     assert.ok(Number.isFinite(point.x) && Number.isFinite(point.y), 'Invalid head/electrode anchor');
   }
 }
+// Physical endpoints must use one affine projection, independent of the legacy
+// joint-angle illustration, signal values or animation clock.
+const body = {bodyPositionMm:[.3,-.2,.5], legs:{}, legPointsMm:{}};
+for (const [i,id] of ids.entries()) body.legPointsMm[id] = {
+  hip:[i*.1,.2,.5],knee:[i*.1-.5,.4,.25],foot:[i*.1-.9,.7,0]};
+const physical = render(body,0,0);
+assert.equal(physical.anchors.motionSource,'simulated_body_geometry');
+assert.deepEqual(render(body,130.7,1),physical);
+for (const id of ids) for (const key of ['hip','knee','foot']) {
+  const expected = actor.projectBodyPoint(body.legPointsMm[id][key]);
+  const actual = physical.anchors.legJoints[id][key];
+  assert.ok(Math.abs(actual.x-expected[0])<1e-10 && Math.abs(actual.y-expected[1])<1e-10);
+}
+const moved = structuredClone(body);
+moved.legPointsMm.LF.foot[2]=.1;
+const next=render(moved,0,0);
+assert.notDeepEqual(next.anchors.legJoints.LF.foot,physical.anchors.legJoints.LF.foot);
+for (const id of ids.slice(1)) assert.deepEqual(next.anchors.legJoints[id],physical.anchors.legJoints[id]);
 console.log('Motor renderer invariants passed');
 """
