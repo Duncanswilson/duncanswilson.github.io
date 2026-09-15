@@ -2,7 +2,7 @@
 
 Deployment package for the fly reward lab. The frontend on the default branch uses the live OVH backend. The unpacked Python source, tests, Dockerfile and Compose configuration are available [one directory above](../README.md) on `master`.
 
-`fly-backend.tar.gz` remains the original checksum-pinned installer artifact. Its Python backend matches the unpacked source; its bundled viewer predates the current FlyPaint design in `../visualizer/`. The Oracle provisioning scripts below are retained as deployment history and alternatives; the current VPS runs on OVH.
+`fly-backend.tar.gz` remains the original checksum-pinned installer artifact. Its Python backend matches the unpacked source; its bundled viewer predates the current Hedonome design in `../visualizer/`. The Oracle provisioning scripts below are retained as deployment history and alternatives; the current VPS runs on OVH.
 
 The backend runs the connectome rate model continuously and saves checkpoints. Motor readouts drive the viewer; this is an uncalibrated model, not evidence of subjective pleasure.
 

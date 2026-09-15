@@ -20,7 +20,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest
 ```
 
-The [cloud backend archive](cloud/fly-backend.tar.gz) is retained unchanged for installers that verify its checksum. It predates the CPG and body implementation; deploy current source using [the versioned CPG rollout](deploy/CPG_ROLLOUT.md). The unpacked `visualizer/` contains the current FlyPaint design; the archive retains its original viewer. GitHub Pages serves the frontend only; merging source does not redeploy the running VPS.
+The [cloud backend archive](cloud/fly-backend.tar.gz) is retained unchanged for installers that verify its checksum. It predates the CPG and body implementation; deploy current source using [the versioned CPG rollout](deploy/CPG_ROLLOUT.md). The unpacked `visualizer/` contains the current Hedonome design; the archive retains its original viewer. GitHub Pages serves the frontend only; merging source does not redeploy the running VPS.
 
 The live page observes an independently running server using read-only HTTPS requests and server-sent events. It displays actual model motor states, connection status, and simulated time. A lost or stale connection holds the last received pose and displays its status.
 
