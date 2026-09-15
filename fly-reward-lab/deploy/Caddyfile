@@ -1,0 +1,10 @@
+{
+	# Close long-lived streams during a deliberate proxy shutdown.
+	grace_period 10s
+}
+
+{$FLY_API_DOMAIN} {
+	# Caddy immediately flushes text/event-stream responses by default.
+	# Preserve normal request cancellation when an observer disconnects.
+	reverse_proxy backend:8000
+}

@@ -1,0 +1,14 @@
+# An allowlist keeps downloaded data, results, credentials and local environments
+# out of the image build context.
+**
+!Dockerfile
+!.dockerignore
+!pyproject.toml
+!requirements-live-lock.txt
+!flyreward/
+!flyreward/**
+!visualizer/
+!visualizer/**
+flyreward/**/__pycache__/
+flyreward/**/*.pyc
+flyreward/**/*.pyo

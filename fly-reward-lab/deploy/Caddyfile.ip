@@ -1,0 +1,19 @@
+{
+	grace_period 10s
+	# Browsers may omit SNI when connecting to an IP. Select the public-IP
+	# certificate even when Caddy sees a different local address behind NAT.
+	default_sni {$FLY_API_DOMAIN}
+}
+
+https://{$FLY_API_DOMAIN} {
+	tls {
+		# Explicit public issuance overrides Caddy's default internal CA for IPs.
+		issuer acme {
+			dir https://acme-v02.api.letsencrypt.org/directory
+			profile shortlived
+			disable_tlsalpn_challenge
+		}
+	}
+	# text/event-stream responses flush immediately with normal disconnects.
+	reverse_proxy backend:8000
+}

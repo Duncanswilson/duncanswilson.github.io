@@ -1,0 +1,8 @@
+# Use with compose.yaml. FLY_API_DOMAIN is the actual bare public IPv4 here.
+services:
+  caddy:
+    image: caddy:2.11.4-alpine
+    environment:
+      FLY_API_DOMAIN: ${FLY_API_DOMAIN:?Set FLY_API_DOMAIN to this VM's actual public IPv4}
+    volumes:
+      - ./Caddyfile.ip:/etc/caddy/Caddyfile:ro
