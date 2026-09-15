@@ -1,6 +1,6 @@
 # Fly motor-neuron simulator
 
-[Open the continuous live viewer](https://duncanscottwilson.com/fly-reward-lab/).
+[Open the continuous live viewer](https://duncanscottwilson.com/hedonome/).
 
 ## Backend source
 
