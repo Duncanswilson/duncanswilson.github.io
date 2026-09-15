@@ -1,11 +1,11 @@
 # Fly motor-neuron simulator
 
-[Open the simulator](https://duncanscottwilson.com/fly-reward-lab/).
+[Open the continuous live viewer](https://duncanscottwilson.com/fly-reward-lab/) or [open the preserved recorded viewer](recorded.html).
 
-Static, browser-based replay of a connectome-constrained hypothesis model using the public MaleCNS v1.0 data from HHMI Janelia and collaborators. It records 815 identified motor neurons; 164 are mapped to 24 antagonist channels for two joints on each of six legs. The inspector exposes firing rates, body IDs, raw recordings, and joint offsets.
+The live page observes an independently running server using read-only HTTPS requests and server-sent events. It displays actual model motor states, connection status, simulated time, and a bounded recent trace. It has no replay timeline. A lost or stale connection holds the last received pose and displays its status; no recording substitutes for live state.
 
-The neural rates are simulated. Muscle and joint mechanics are uncalibrated assumptions; unmapped body parts remain stationary, and body physics and sensory feedback are absent. The viewer contains no scripted writhing. The best-tested 20-second replay settles into a steady pose after small joint changes.
+The recorded viewer remains self-contained, including its original playback data and controls. Existing [recorded experiment reports](results/search/report.html), [motor mapping](results/motor/motor_mapping.json), and all raw per-neuron recordings remain available at their original paths.
 
-See [motor mapping and primary sources](MOTOR_MAPPING.md), [model equations](MODEL.md), and [verification results](MOTOR_VERIFICATION.json). Data source: [MaleCNS v1.0](https://male-cns.janelia.org/download/). Background: [Google Research's connectome announcement](https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/).
+This is a connectome-constrained hypothesis model using public MaleCNS v1.0 data, not measured pleasure or a biologically validated simulation. Muscle and joint mechanics are assumptions; unmapped body parts remain still. See [motor mapping and primary sources](MOTOR_MAPPING.md), [model equations](MODEL.md), and [recorded verification](MOTOR_VERIFICATION.json).
 
-All visualizer code and playback data are embedded in `index.html`. Reports, the motor mapping, and full per-neuron NPZ recordings are served as static files. No server computation, cookies, tracking, API key, or external runtime dependency is required.
+The backend URL in `live-config.js` is public. The viewer sends no write requests and uses no API key, tracking, or external runtime libraries. JavaScript and a working backend connection are required for live state; the preserved recording works offline.

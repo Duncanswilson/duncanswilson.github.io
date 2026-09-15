@@ -1,0 +1,25 @@
+/* Continuous, read-only monitoring alongside the existing room illustration. */
+.room{height:calc(100vh - 305px);min-height:480px}
+.live-status-panel{margin:0 24px;padding:18px 26px 20px;background:#21312d;border:1px solid #ffffff16;border-top:0;border-radius:0 0 8px 8px}
+.connection-row{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid #ffffff15}
+.connection-badge{flex-shrink:0;font-size:10px;font-weight:650;letter-spacing:.03em;padding:6px 10px;border-radius:30px;color:#eed7a7;background:#d8bc7630}
+#connection-note{margin:0;font-size:11px;line-height:1.5;color:#c3d0c3}
+#last-received{margin-left:auto;color:#91a899;font-size:10px;white-space:nowrap}
+.live-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;padding:19px 0 13px}
+.live-stats>div{min-width:0}.live-stats span{display:block;color:#a5b6a9;font-size:8px;letter-spacing:.1em;margin-bottom:9px}
+.live-stats strong{font:20px "SFMono-Regular",Consolas,monospace;color:#e6efde;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.live-mechanics{margin:7px 0 0;color:#c1d2bd;font-size:10px}.live-mechanics span{color:#8fa596}
+.live-details{margin-top:15px;padding-top:13px;border-top:1px solid #ffffff15;color:#a9bfae;font-size:10px}
+.live-details summary{cursor:pointer}.live-details pre{font:10px/1.6 "SFMono-Regular",Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto}
+#backend-endpoint{overflow-wrap:anywhere;color:#8eab99}.live-error{font-size:11px;line-height:1.5;border:1px solid #d890733d;border-radius:5px;background:#ba69421a;color:#ebc4b6;padding:10px 13px}.live-error[hidden]{display:none}
+body[data-live-phase=connected] .connection-badge{background:#64d5be22;color:#9ce4d0}
+body[data-live-phase=connected] .status-dot{background:#84d9b7}
+body[data-live-phase=stale] .connection-badge{background:#d8bc7630;color:#eed7a7}
+body[data-live-phase=disconnected] .connection-badge,body[data-live-phase=closed] .connection-badge,body[data-live-phase=unavailable] .connection-badge{background:#d37e6b30;color:#efb9ac}
+body:not([data-live-phase=connected]) .status-dot{background:#d2b778;box-shadow:none}
+body[data-live-phase=disconnected] .status-dot,body[data-live-phase=unavailable] .status-dot{background:#d58f7c}
+body:not([data-live-phase=connected]) #signal-state{color:#dfc69d}
+.motor-channel.unmapped{opacity:.68}.loading span{padding:20px;text-align:center;font-size:13px;max-width:400px;line-height:1.6}
+@media(max-width:900px){.live-stats{gap:14px}.live-stats strong{font-size:17px}.live-stats span{font-size:7px}.masthead-right .report-link{font-size:9px}}
+@media(max-width:800px){.live-status-panel{margin:0 12px;padding:16px 18px}.connection-row{flex-wrap:wrap;gap:10px}#last-received{margin-left:0;width:100%;font-size:9px}.live-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.room{height:60vw;min-height:430px}.live-mechanics span{display:block;margin-top:5px}}
+@media(max-width:480px){.room{height:470px;min-height:0}.live-status-panel{padding:14px}.live-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:19px 12px}.live-stats strong{font-size:17px}#connection-note{font-size:10px;flex:1}.connection-badge{font-size:9px}.live-details{font-size:9px}.live-mechanics{font-size:9px}.masthead-right .report-link{max-width:105px;font-size:8px}.report-link span{display:none}}
