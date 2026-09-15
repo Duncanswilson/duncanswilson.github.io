@@ -14,7 +14,7 @@
       <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 11v20M20 17C-1 1 1 29 20 23M20 17C41 1 39 29 20 23M14 28l-6 5m18-5 6 5M15 14l-5-6m15 6 5-6"/><ellipse cx="20" cy="22" rx="4" ry="10"/><circle cx="20" cy="10" r="4"/></svg>
       <span><strong>FLY REWARD LAB</strong><small>Continuous connectome simulation</small></span>
     </a>
-    <div class="masthead-right"><span class="status-dot"></span><span id="header-status">Connecting to simulation</span><a class="report-link" href="recorded.html">Recorded viewer <span aria-hidden="true">↗</span></a><a class="report-link" href="results/search/report.html">Recorded experiments <span aria-hidden="true">↗</span></a></div>
+    <div class="masthead-right"><span class="status-dot"></span><span id="header-status">Connecting to simulation</span></div>
   </header>
   <main>
     <section class="room" aria-labelledby="room-title">
@@ -46,13 +46,6 @@
       <details class="live-details"><summary>Engine, endpoint, and model assumptions</summary><p id="backend-endpoint"></p><pre id="model-record">Waiting for /api/meta.</pre></details>
     </section>
 
-    <section class="motor-inspector" aria-label="Live motor neuron and joint inspector">
-      <div class="inspector-heading"><div><p class="eyebrow">FOLLOW THE MOTOR OUTPUT</p><h2 id="leg-title">Left front leg</h2></div><div class="inspector-links"><a id="raw-motor-link" href="https://15.204.9.185/api/neurons">All motor rates ↗</a><a id="mapping-link" href="https://15.204.9.185/api/meta">Neuron mapping ↗</a></div></div>
-      <p id="mapping-error" class="live-error" hidden></p>
-      <div class="leg-selector" role="group" aria-label="Select a leg"></div>
-      <div id="motor-channels" class="motor-channels"></div>
-      <div class="joint-chart-row"><div class="joint-readouts"><span>Trochanter flexion offset<strong id="trochanter-value">—</strong></span><span>Tibia flexion offset<strong id="tibia-value">—</strong></span></div><div class="motor-chart"><svg id="motor-trace" viewBox="0 0 600 92" role="img" aria-label="Recent received mean motor firing rates for the selected muscle groups"><g id="trace-curves"></g><text id="trace-max" x="3" y="88">Waiting for server states</text></svg><p>Received snapshots only, up to 600 points. No resampling. Body IDs identify the neurons in each muscle group.</p></div></div>
-    </section>
     <footer><p>The server advances the neural simulation; this page only observes it. Motor-to-muscle and joint mechanics are assumptions. Unmapped body parts remain still, and steady outputs produce a steady pose. A stale or disconnected stream holds the last received pose.</p><span>READ ONLY · CONTINUOUS SERVER STATE</span></footer>
     <noscript><p class="live-error">Enable JavaScript to receive the live stream. No recorded replay is substituted for a connection.</p></noscript>
   </main>

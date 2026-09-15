@@ -5,17 +5,12 @@
   const canvas = $('room-canvas');
   const ctx = canvas.getContext('2d');
   const room = document.querySelector('.room');
-  const state = {leg:'LF',clean:false};
-  const legNames={LF:'Left front leg',LM:'Left middle leg',LH:'Left hind leg',RF:'Right front leg',RM:'Right middle leg',RH:'Right hind leg'};
-  const legIds=Object.keys(legNames);
+  const state = {clean:false};
   const colors=['#69d8bc','#eda0a2','#d8c184'];
-  const muscleColors=['#69d8bc','#d8c184','#9dbbdd','#eda0a2'];
   const TAU=Math.PI*2;
   const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
   const finite=v=>typeof v==='number'&&Number.isFinite(v);
-  const history=[];
-  const maxHistory=600;
-  let latest=null,metadata=null,connection=null,client=null,activeChannels=[],drawQueued=false;
+  let latest=null,metadata=null,connection=null,client=null,drawQueued=false;
   let width=0,height=0,pixelRatio=1;
   const background=document.createElement('canvas');background.width=1440;background.height=1300;
   const bg=background.getContext('2d');
@@ -167,14 +162,6 @@
     // exclusively from the newest validated server motorPose.
     const pose=FlyActor.draw(ctx,{motorPose:latest.motorPose,dopamine:latest.dopamine,npf:latest.npf});
     ctx.restore();
-    if(!state.clean&&pose.legJoints?.[state.leg]){
-      const leg=pose.legJoints[state.leg];
-      for(const [joint,label] of [['hip','Tr'],['knee','Ti']]){
-        const p=leg[joint],x=fx+p.x*fs,y=fy+p.y*fs;
-        ellipse(ctx,x,y,6,6,'#e9ebcce0');ellipse(ctx,x,y,2.5,2.5,'#275342');
-        text(ctx,`${state.leg} ${label}`,x+10,y-8,9,'#305040');
-      }
-    }
     pose.ports.forEach((port,i)=>drawWire(inputs[i],{x:fx+port.x*fs,y:fy+port.y*fs},i,signal,0));
     const shade=ctx.createLinearGradient(0,880,0,1300);shade.addColorStop(0,'#344e3600');shade.addColorStop(1,'#344e3620');ctx.fillStyle=shade;ctx.fillRect(0,880,1440,420);
     ctx.restore();
@@ -183,60 +170,7 @@
   function scheduleDraw(){
     if(drawQueued)return;
     drawQueued=true;
-    requestAnimationFrame(()=>{drawQueued=false;drawScene();drawTrace();});
-  }
-
-  function buildInspector(){
-    $('leg-title').textContent=legNames[state.leg];
-    const selector=document.querySelector('.leg-selector');selector.replaceChildren();
-    legIds.forEach(id=>{
-      const button=document.createElement('button');button.type='button';button.textContent=legNames[id];
-      button.setAttribute('aria-pressed',String(id===state.leg));button.dataset.leg=id;
-      button.addEventListener('click',()=>{state.leg=id;buildInspector();updateReadout();scheduleDraw();});selector.append(button);
-    });
-    const channels=Array.isArray(metadata?.channels)?metadata.channels:[];
-    const mappingValid=channels.length===24&&legIds.every(leg=>
-      ['trochanter','tibia'].every(joint=>['flexor','extensor'].every(action=>{
-        const matches=channels.filter(c=>c&&c.leg===leg&&c.joint===joint&&c.action===action);
-        return matches.length===1&&Array.isArray(matches[0].body_ids)&&matches[0].body_ids.length>0&&
-          matches[0].body_ids.every(id=>Number.isSafeInteger(id)&&id>0);
-      })));
-    activeChannels=[];
-    for(const joint of ['trochanter','tibia'])for(const action of ['flexor','extensor']){
-      const index=mappingValid?channels.findIndex(c=>c.leg===state.leg&&c.joint===joint&&c.action===action):-1;
-      activeChannels.push({index,joint,action,channel:index>=0?channels[index]:null});
-    }
-    const grid=$('motor-channels');grid.replaceChildren();
-    activeChannels.forEach((item,i)=>{
-      const card=document.createElement('div');card.className='motor-channel'+(item.channel?'':' unmapped');card.style.setProperty('--channel-color',muscleColors[i]);
-      const title=document.createElement('span');title.className='channel-title';title.textContent=`${item.joint==='trochanter'?'Trochanter':'Tibia'} ${item.action}`;
-      const value=document.createElement('strong');value.id=`channel-value-${i}`;value.textContent='—';
-      const details=document.createElement('details');const summary=document.createElement('summary');
-      const ids=Array.isArray(item.channel?.body_ids)?item.channel.body_ids:[];
-      summary.textContent=item.channel?`${ids.length} motor neuron${ids.length===1?'':'s'} · body IDs`:'Waiting for channel mapping';
-      const content=document.createElement('p');content.textContent=ids.length?ids.join(', '):'No neuron IDs received.';
-      details.append(summary,content);card.append(title,value,details);grid.append(card);
-    });
-    const mappingInvalid=metadata!==null&&!mappingValid;
-    $('mapping-error').hidden=!mappingInvalid;
-    $('mapping-error').textContent=mappingInvalid?'The server metadata is missing required motor channels or neuron IDs. Unavailable channel values are not inferred.':'';
-  }
-
-  function drawTrace(){
-    const ns='http://www.w3.org/2000/svg',group=$('trace-curves');group.replaceChildren();
-    const guide=document.createElementNS(ns,'path');guide.setAttribute('d','M0 5H600M0 40H600M0 76H600');guide.setAttribute('stroke','#ffffff16');guide.setAttribute('fill','none');group.append(guide);
-    if(!history.length||!activeChannels.length){$('trace-max').textContent='Waiting for received server states';return;}
-    const first=history[0].time,last=history[history.length-1].time,span=last-first;
-    let maximum=1;
-    history.forEach(row=>activeChannels.forEach(item=>{if(item.index>=0)maximum=Math.max(maximum,row.rates[item.index]);}));
-    maximum=Math.ceil(maximum/5)*5;
-    activeChannels.forEach((item,i)=>{
-      if(item.index<0)return;
-      const path=document.createElementNS(ns,'path');
-      path.setAttribute('d',history.map((row,k)=>`${k?'L':'M'}${(span>0?(row.time-first)/span*600:0).toFixed(2)},${(76-row.rates[item.index]/maximum*70).toFixed(2)}`).join(' '));
-      path.setAttribute('fill','none');path.setAttribute('stroke',muscleColors[i]);path.setAttribute('stroke-width','1.6');group.append(path);
-    });
-    $('trace-max').textContent=`0–${maximum} Hz · ${history.length} received states · ${first.toFixed(2)}–${last.toFixed(2)} simulated s`;
+    requestAnimationFrame(()=>{drawQueued=false;drawScene();});
   }
 
   function duration(seconds){
@@ -256,13 +190,7 @@
     $('realtime-factor').textContent=finite(latest.realtime_factor)?latest.realtime_factor.toFixed(3)+'×':'—';
     $('uptime-value').textContent=duration(latest.uptime_seconds);
     $('server-clock').textContent=new Date(latest.server_time*1000).toLocaleTimeString();
-    activeChannels.forEach((item,i)=>{
-      const value=item.index>=0?latest.channel_rates_hz[item.index]:null;
-      $(`channel-value-${i}`).textContent=finite(value)?value.toFixed(2)+' Hz':'—';
-    });
-    const leg=latest.motorPose.legs[state.leg];
-    $('trochanter-value').textContent=(leg.trochanter*180/Math.PI).toFixed(3)+'°';
-    $('tibia-value').textContent=(leg.tibia*180/Math.PI).toFixed(3)+'°';
+
   }
 
   function modelRecord(){
@@ -305,22 +233,18 @@
 
   if(!ctx||!bg||!window.FlyActor||!window.FlyLive){unavailable(new Error('Required live viewer assets did not load.'));return;}
   $('scene-mode').addEventListener('click',()=>{state.clean=!state.clean;room.classList.toggle('clean',state.clean);$('scene-mode').setAttribute('aria-pressed',String(state.clean));$('scene-mode').textContent=state.clean?'Show labels ↙':'Hide labels ↗';scheduleDraw();});
-  buildRoom();buildInspector();resize();new ResizeObserver(resize).observe(room);
+  buildRoom();resize();new ResizeObserver(resize).observe(room);
   try{
     const base=new URL(backend,window.location.href);base.pathname=base.pathname.replace(/\/+$/,'')+'/';
-    $('mapping-link').href=new URL('api/meta',base).href;
-    $('raw-motor-link').href=new URL('api/neurons',base).href;
     $('backend-endpoint').textContent='Backend: '+base.href;
     client=FlyLive.connect(backend,{
       staleAfterMs:window.FlyLiveConfig?.staleAfterMs??15000,
-      onMeta(meta){metadata=meta;buildInspector();
+      onMeta(meta){metadata=meta;
         const recorded=meta.recorded_neuron_count,mapped=meta.mapped_neuron_count;
         $('motor-counts').textContent=Number.isInteger(recorded)&&Number.isInteger(mapped)?`${recorded} MOTOR NEURONS · ${mapped} MAPPED TO LEG JOINTS`:'MOTOR COUNTS NOT PROVIDED';
         modelRecord();updateReadout();scheduleDraw();},
       onState(frame,receipt){
-        if(receipt.newRun||receipt.resumed)history.length=0;
-        latest=frame;history.push({time:frame.sim_time,rates:frame.channel_rates_hz});
-        if(history.length>maxHistory)history.splice(0,history.length-maxHistory);
+        latest=frame;
         $('loading').hidden=true;updateReadout();if(receipt.newRun||receipt.resumed)modelRecord();scheduleDraw();},
       onStatus:updateConnection,
     });
