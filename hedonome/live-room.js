@@ -43,6 +43,46 @@
     c.fillText(value,Math.round(x),Math.round(y));
   }
 
+  // Actual 5×7 glyphs: each stroke lands on the final canvas pixel grid.
+  // Canvas font antialiasing followed by dithering destroys text at this size.
+  const deviceGlyphs={
+    '0':['01110','10001','10011','10101','11001','10001','01110'],
+    '1':['00100','01100','00100','00100','00100','00100','01110'],
+    '2':['01110','10001','00001','00010','00100','01000','11111'],
+    '3':['11110','00001','00001','01110','00001','00001','11110'],
+    '4':['00010','00110','01010','10010','11111','00010','00010'],
+    '5':['11111','10000','10000','11110','00001','00001','11110'],
+    '6':['01110','10000','10000','11110','10001','10001','01110'],
+    '7':['11111','00001','00010','00100','01000','01000','01000'],
+    '8':['01110','10001','10001','01110','10001','10001','01110'],
+    '9':['01110','10001','10001','01111','00001','00001','01110'],
+    A:['01110','10001','10001','11111','10001','10001','10001'],
+    D:['11110','10001','10001','10001','10001','10001','11110'],
+    E:['11111','10000','10000','11110','10000','10000','11111'],
+    F:['11111','10000','10000','11110','10000','10000','10000'],
+    H:['10001','10001','10001','11111','10001','10001','10001'],
+    L:['10000','10000','10000','10000','10000','10000','11111'],
+    N:['10001','11001','11001','10101','10011','10011','10001'],
+    P:['11110','10001','10001','11110','10000','10000','10000'],
+    R:['11110','10001','10001','11110','10100','10010','10001'],
+    T:['11111','00100','00100','00100','00100','00100','00100'],
+    V:['10001','10001','10001','10001','10001','01010','00100'],
+    Z:['11111','00001','00010','00100','01000','10000','11111'],
+    '-':['00000','00000','00000','11111','00000','00000','00000'],
+  };
+  function deviceText(value,x,y,scale=1,color='#000'){
+    ctx.fillStyle=color;x=Math.round(x);y=Math.round(y);
+    [...String(value).toUpperCase()].forEach((letter,index)=>{
+      const glyph=deviceGlyphs[letter];if(!glyph)return;
+      glyph.forEach((row,dy)=>[...row].forEach((bit,dx)=>{
+        if(bit==='1')ctx.fillRect(x+(index*6+dx)*scale,y+dy*scale,scale,scale);
+      }));
+    });
+  }
+  function centeredDeviceText(value,x,y){
+    deviceText(value,x-(value.length*6-1)/2,y);
+  }
+
   function buildRoom() {
     background.width=width;background.height=height;
     const left=Math.round(width*.15),right=Math.round(width*.84),horizon=Math.round(height*.42);
@@ -75,31 +115,75 @@
     if(width>390)bitmapText(bg,'OBSERVATION ROOM',left+7,horizon-9,7);
   }
 
-  function drawDevice(x,y,signal,scale) {
-    ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(scale,scale);
-    polygon(ctx,[[0,48],[90,48],[104,57],[17,57]],pattern(.125));
-    polygon(ctx,[[90,48],[104,57],[104,106],[90,98]],pattern(.5));
-    box(ctx,0,54,91,51);box(ctx,5,59,81,20,'#000');
-    bitmapText(ctx,'SIGNAL',9,66,6,'#fff');
-    bitmapText(ctx,String(Math.round(signal.rate)).padStart(3,'0'),9,76,11,'#fff');
-    bitmapText(ctx,'Hz',36,76,7,'#fff');
-    for(let i=0;i<12;i++)box(ctx,54+i*2,64,1,11,i/12<signal.dopamine?'#fff':'#555',null);
-    bitmapText(ctx,'DA',9,91,7);bitmapText(ctx,'NPF',35,91,7);bitmapText(ctx,'OUT',65,91,7);
-    [13,42,73].forEach(bx=>box(ctx,bx,95,7,4,pattern(.5)));
-    [5,80].forEach(bx=>box(ctx,bx,106,9,4,'#000'));
+  function drawDevice(signal) {
+    const full=width>=360&&height>=250;
+    const faceWidth=full?128:94,side=full?10:8,deviceHeight=full?160:120;
+    const x=Math.round(width*.095);
+    const y=Math.max(8,Math.round(Math.min(height*.48,height-deviceHeight-12)));
+    const centers=full?[24,64,104]:[18,47,76];
+    const tubeY=full?22:18,tubeHeight=full?48:29,tubeWidth=full?24:18;
+    const faceY=full?80:56,faceHeight=full?73:57;
+    const socketY=full?139:105,socketWidth=full?12:10,socketHeight=full?9:7;
+    ctx.save();ctx.translate(x,y);
+    // No fractional scaling: labels, glass highlights and gauges stay crisp.
+    polygon(ctx,[[0,faceY-5],[faceWidth,faceY-5],[faceWidth+side,faceY+3],[side,faceY+3]],pattern(.125));
+    polygon(ctx,[[faceWidth,faceY-5],[faceWidth+side,faceY+3],
+      [faceWidth+side,faceY+faceHeight+2],[faceWidth,faceY+faceHeight]],pattern(.125));
+    box(ctx,0,faceY,faceWidth,faceHeight);
+    for(let vent=faceY+12;vent<faceY+faceHeight-8;vent+=6)
+      line(ctx,faceWidth+3,vent,faceWidth+side-2,vent+3);
+    [4,faceWidth-5].forEach(screw=>{
+      box(ctx,screw,faceY+3,3,3,'#000',null);
+      box(ctx,screw+1,faceY+4,1,1,'#fff',null);
+    });
+    [7,faceWidth-16].forEach(foot=>box(ctx,foot,faceY+faceHeight+1,10,5,'#000',null));
+
+    const screenX=full?7:5,screenY=faceY+7,screenWidth=faceWidth-2*screenX;
+    box(ctx,screenX,screenY,screenWidth,full?33:31,'#000');
+    const textX=screenX+5,textY=screenY+4;
+    deviceText('DA RATE',textX,textY,1,'#fff');
+    const rate=String(Math.round(signal.rate)).padStart(3,'0');
+    deviceText(rate,textX,textY+11,2,'#fff');
+    deviceText('HZ',textX+rate.length*12+4,textY+18,1,'#fff');
+    const meterX=full?86:68,barCount=full?10:6;
+    deviceText(full?'LEVEL':'DA',full?85:72,textY,1,'#fff');
+    line(ctx,meterX-7,textY,meterX-7,textY+23,'#fff');
+    for(let i=0;i<barCount;i++){
+      const active=i/barCount<clamp(signal.dopamine,0,1);
+      box(ctx,meterX+i*3,textY+12,2,active?11:1,'#fff',null);
+    }
+
     const values=[signal.dopamine,signal.npf,clamp(signal.rate/Math.max(1,metadata?.config?.max_rate||100),0,1)];
-    const labels=['DA','NPF','DRV'];
-    values.forEach((value,i)=>{
-      const bx=7+i*29;
-      box(ctx,bx,9,20,42);box(ctx,bx+3,12,14,35);
-      const level=Math.round(clamp(value,0,1)*32);
-      box(ctx,bx+4,46-level,12,level,pattern([.5,.25,.75][i]),null);
-      box(ctx,bx-1,5,22,5,pattern(.5));box(ctx,bx-1,49,22,4,'#000');
-      line(ctx,bx+5,13,bx+5,43,'#fff');
-      bitmapText(ctx,labels[i],bx+1,0,7);
+    const labels=['DA','NPF','RATE'];
+    centers.forEach((center,i)=>{
+      const tubeX=center-tubeWidth/2,plateWidth=full?36:26;
+      // White nameplates separate lettering from the room's stippled floor.
+      box(ctx,center-plateWidth/2,0,plateWidth,11);
+      centeredDeviceText(labels[i],center,2);
+      box(ctx,tubeX-2,tubeY-7,tubeWidth+4,5,'#000');
+      for(let ridge=tubeX+1;ridge<tubeX+tubeWidth;ridge+=4)
+        box(ctx,ridge,tubeY-6,1,3,'#fff',null);
+      box(ctx,tubeX,tubeY,tubeWidth,tubeHeight);
+      const insideY=tubeY+3,insideHeight=tubeHeight-6;
+      const level=Math.round(clamp(values[i],0,1)*insideHeight);
+      box(ctx,tubeX+3,insideY+insideHeight-level,tubeWidth-6,level,pattern([.5,.25,.75][i]),null);
+      if(level>0)line(ctx,tubeX+3,insideY+insideHeight-level,tubeX+tubeWidth-3,insideY+insideHeight-level);
+      box(ctx,tubeX+3,insideY,2,insideHeight,'#fff',null);
+      [0,.25,.5,.75,1].forEach((fraction,tick)=>{
+        const tickY=Math.round(insideY+fraction*insideHeight);
+        line(ctx,tubeX+tubeWidth-2,tickY,tubeX+tubeWidth+(tick%2===0?3:1),tickY);
+      });
+      if(full){deviceText('1',tubeX+tubeWidth+5,insideY-1);deviceText('0',tubeX+tubeWidth+5,insideY+insideHeight-6);}
+      box(ctx,tubeX-2,tubeY+tubeHeight+2,tubeWidth+4,5,'#000');
+      line(ctx,tubeX+1,tubeY+tubeHeight+3,tubeX+tubeWidth-1,tubeY+tubeHeight+3,'#fff');
+      centeredDeviceText(labels[i],center,full?128:96);
+      box(ctx,center-socketWidth/2,socketY,socketWidth,socketHeight,'#000',null);
+      box(ctx,center-socketWidth/2+2,socketY+2,socketWidth-4,socketHeight-4,'#fff',null);
+      box(ctx,center-2,socketY+socketHeight-3,4,3,'#000',null);
     });
     ctx.restore();
-    return [13,42,73].map(bx=>({x:x+(bx+3)*scale,y:y+98*scale}));
+    // Wire roots and socket bottoms share exactly the same snapped coordinates.
+    return centers.map(center=>({x:x+center,y:y+socketY+socketHeight-1}));
   }
 
   function drawWire(start,end,index) {
@@ -128,9 +212,8 @@
     ctx.drawImage(background,0,0);
     if(latest){
       const scale=Math.min(width/530,height/295);
-      const deviceScale=clamp(width/530,.65,1.05);
       const fx=width*.69,fy=height*.68,fs=scale*.78;
-      const inputs=drawDevice(width*.095,height*.48,{dopamine:latest.dopamine,npf:latest.npf,rate:latest.dopamine_rate_hz},deviceScale);
+      const inputs=drawDevice({dopamine:latest.dopamine,npf:latest.npf,rate:latest.dopamine_rate_hz});
       ctx.save();ctx.translate(fx,fy);ctx.scale(fs,fs);
       // Both joint geometry and body translation come from this server state.
       const pose=FlyActor.draw(ctx,{motorPose:latest.motorPose,dopamine:latest.dopamine,npf:latest.npf});
