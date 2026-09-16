@@ -5,14 +5,9 @@
   const canvas = $('room-canvas');
   const ctx = canvas.getContext('2d', {alpha:false, willReadFrequently:true});
   const room = document.querySelector('.room');
-  const state = {clean:false};
-  const TAU=Math.PI*2;
   const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-  const finite=v=>typeof v==='number'&&Number.isFinite(v);
-  let latest=null,metadata=null,connection=null,client=null,drawQueued=false;
+  let latest=null,metadata=null,client=null,drawQueued=false;
   let width=0,height=0;
-  const motorSamples=[];
-  let traceChannel=-1;
   const background=document.createElement('canvas');
   const bg=background.getContext('2d');
   const backend=window.FlyLiveConfig?.endpoint||window.location.origin;
@@ -150,69 +145,15 @@
     requestAnimationFrame(()=>{drawQueued=false;drawScene();});
   }
 
-  function duration(seconds){
-    if(!finite(seconds))return '—';
-    const whole=Math.max(0,Math.floor(seconds)),days=Math.floor(whole/86400),hours=Math.floor(whole%86400/3600),minutes=Math.floor(whole%3600/60),s=whole%60;
-    return (days?`${days}d `:'')+(days||hours?`${hours}h `:'')+`${minutes}m ${s}s`;
-  }
-  function updateReadout(){
-    if(!latest)return;
-    $('dopamine-value').textContent=latest.dopamine.toFixed(3);
-    $('npf-value').textContent=latest.npf.toFixed(3);
-    $('rate-value').textContent=latest.motor_mean_hz.toFixed(2);
-    $('dopamine-meter').style.width=`${clamp(latest.dopamine,0,1)*100}%`;
-    $('npf-meter').style.width=`${clamp(latest.npf,0,1)*100}%`;
-    $('sim-time').textContent=latest.sim_time.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' s';
-    $('step-value').textContent=latest.step.toLocaleString('en-US');
-    $('realtime-factor').textContent=finite(latest.realtime_factor)?latest.realtime_factor.toFixed(3)+'×':'—';
-    $('uptime-value').textContent=duration(latest.uptime_seconds);
-    $('server-clock').textContent=new Date(latest.server_time*1000).toLocaleTimeString();
-
-  }
-
-  function drawMotorTrace(frame, receipt){
-    if(traceChannel<0)return;
-    if(receipt.newRun || receipt.resumed)motorSamples.length=0;
-    const sample={t:frame.sim_time,rate:frame.channel_rates_hz[traceChannel]};
-    motorSamples.push(sample);
-    if(motorSamples.length>96)motorSamples.shift();
-    const plot=$('motor-trace'),c=plot.getContext('2d');
-    const low=Math.min(...motorSamples.map(s=>s.rate)), high=Math.max(...motorSamples.map(s=>s.rate));
-    const span=Math.max(high-low,.01),timeSpan=Math.max(sample.t-motorSamples[0].t,.01);
-    c.fillStyle='#fff';c.fillRect(0,0,plot.width,plot.height);c.fillStyle='#000';
-    // Only actual received samples are painted. Pixel connecting segments are
-    // a graph of these samples, never additional simulated states.
-    c.beginPath();c.strokeStyle='#000';c.lineWidth=1;
-    motorSamples.forEach((s,i)=>{const x=2+(s.t-motorSamples[0].t)/timeSpan*(plot.width-5), y=plot.height-3-(s.rate-low)/span*(plot.height-6);i?c.lineTo(x,y):c.moveTo(x,y);});c.stroke();
-    $('motor-trace-range').textContent=`${low.toFixed(3)}–${high.toFixed(3)} Hz · ${timeSpan.toFixed(2)} s simulated · auto scale`;
-  }
-
-  function modelRecord(){
-    $('model-record').textContent=JSON.stringify({run_id:latest?.run_id??metadata?.run_id??null,stream_id:latest?.stream_id??null,
-      model:metadata?.model??null,config:metadata?.config??null,mechanics:metadata?.mechanics??null,
-      circuit:metadata?.circuit??null,body:metadata?.body??null,assumptions:metadata?.assumptions??null,recorded_neuron_count:metadata?.recorded_neuron_count??null,
-      mapped_neuron_count:metadata?.mapped_neuron_count??null},null,2);
-  }
   function updateConnection(value){
-    connection=value;
     document.body.dataset.livePhase=value.phase;
-    const names={connecting:'Connecting',connected:'Live',stale:'Stale',disconnected:'Disconnected',closed:'Closed'};
-    $('connection-badge').textContent=names[value.phase]||value.phase;
-    $('header-status').textContent=({connecting:'Connecting to simulation',connected:'Receiving continuous motor output',
-      stale:'Simulation stream is stale',disconnected:'Disconnected from simulation',closed:'Live connection closed'})[value.phase]||value.phase;
-    $('signal-state').textContent=value.phase==='connected'?'LIVE':value.phase==='stale'?'STALE':latest?'LAST STATE':'WAITING';
-    let note;
-    if(value.phase==='connected')note='Receiving advancing server states.';
-    else if(value.phase==='stale')note=latest?`No simulated-time progress for ${(value.progressAgeMs/1000).toFixed(1)} seconds. Last received pose held.`:'No advancing simulation state has arrived.';
-    else if(value.phase==='disconnected')note=latest?'Connection lost. Last received pose held while reconnecting.':'The live backend is not connected; no simulation state is displayed.';
-    else if(value.phase==='closed')note='The live connection is closed.';
-    else note=latest?'Snapshot received; waiting for advancing stream states.':'Waiting for the first valid server state.';
-    if(value.resumedAt!==null&&Date.now()-value.resumedAt<30000)note+=' The backend resumed from a checkpoint.';
-    if(value.error)note+=' '+value.error;
-    $('connection-note').textContent=note;
-    const age=value.lastReceivedAt===null?null:Math.max(0,(Date.now()-value.lastReceivedAt)/1000);
-    $('last-received').textContent=age===null?'No state received':age<1?'Just received':`Last received ${age.toFixed(0)}s ago`;
-    if(!latest)$('loading').firstElementChild.textContent=value.phase==='disconnected'?'Live backend unavailable. Waiting to reconnect…':'Waiting for the first server state…';
+    const status=$('header-status');
+    status.textContent=({connecting:'Connecting to simulation',connected:'Live',
+      stale:'Last pose · stream stale',disconnected:'Reconnecting · last pose held',
+      closed:'Live connection closed'})[value.phase]||value.phase;
+    status.title=value.error||'';
+    if(!latest)$('loading').firstElementChild.textContent=value.phase==='disconnected'
+      ?'Live backend unavailable. Waiting to reconnect…':'Waiting for the first server state…';
   }
 
   function resize(){
@@ -224,28 +165,19 @@
     buildRoom();scheduleDraw();
   }
   function unavailable(error){
-    document.body.dataset.livePhase='unavailable';$('connection-badge').textContent='Unavailable';
-    $('header-status').textContent='Live viewer unavailable';$('connection-note').textContent=error.message||String(error);
+    document.body.dataset.livePhase='unavailable';
+    $('header-status').textContent='Live viewer unavailable';
+    $('header-status').title=error.message||String(error);
     $('loading').firstElementChild.textContent='Live state could not be loaded. '+(error.message||String(error));
   }
 
   if(!ctx||!bg||!window.FlyActor||!window.FlyLive){unavailable(new Error('Required live viewer assets did not load.'));return;}
-  $('scene-mode').addEventListener('click',()=>{state.clean=!state.clean;room.classList.toggle('clean',state.clean);$('scene-mode').setAttribute('aria-pressed',String(state.clean));$('scene-mode').textContent=state.clean?'Show labels ↙':'Hide labels ↗';scheduleDraw();});
   resize();new ResizeObserver(resize).observe(room);
   try{
-    const base=new URL(backend,window.location.href);base.pathname=base.pathname.replace(/\/+$/,'')+'/';
-    $('backend-endpoint').textContent='Backend: '+base.href;
     client=FlyLive.connect(backend,{
       staleAfterMs:window.FlyLiveConfig?.staleAfterMs??15000,
-      onMeta(meta){metadata=meta;
-        traceChannel=meta.motor_mode==='cpg'?meta.channels.findIndex(ch=>ch.leg==='LF'&&ch.joint==='trochanter'&&ch.action==='flexor'):-1;
-        $('motor-trace-panel').hidden=traceChannel<0;
-        const recorded=meta.recorded_neuron_count,mapped=meta.mapped_neuron_count;
-        $('motor-counts').textContent=Number.isInteger(recorded)&&Number.isInteger(mapped)?`${recorded} MOTOR NEURONS · ${mapped} MAPPED TO LEG JOINTS`:'MOTOR COUNTS NOT PROVIDED';
-        modelRecord();updateReadout();scheduleDraw();},
-      onState(frame,receipt){
-        latest=frame;drawMotorTrace(frame,receipt);
-        $('loading').hidden=true;updateReadout();if(receipt.newRun||receipt.resumed)modelRecord();scheduleDraw();},
+      onMeta(meta){metadata=meta;scheduleDraw();},
+      onState(frame){latest=frame;$('loading').hidden=true;scheduleDraw();},
       onStatus:updateConnection,
     });
   }catch(error){unavailable(error);}

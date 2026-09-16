@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ffffff">
   <title>Hedonome · Live motor room</title>
   <link rel="icon" type="image/svg+xml" href="flypaint.svg">
-  <link rel="stylesheet" href="live.css?v=d01090b6a157">
+  <link rel="stylesheet" href="live.css?v=fa61198a029a">
 </head>
 <body data-live-phase="connecting">
   <header class="masthead">
@@ -14,50 +14,22 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 2h4v2h2v3h4V4h2V2h4v5h-2v3h-3v2h3v2h4v2h-5v-2h-2v4h3v2h2v2h-4v-2h-2v2h-4v-2H8v2H4v-2h2v-2h3v-4H7v2H2v-2h4v-2h3v-2H6V7H4z"/></svg>
       <strong>Hedonome</strong>
     </a>
-    <nav class="menu-links" aria-label="Page navigation"><a href="https://duncanscottwilson.com/">Home</a><a href="#model-details">About the model</a></nav>
+    <nav class="menu-links" aria-label="Page navigation"><a href="https://duncanscottwilson.com/">Home</a><a href="model-notes.html">About the model</a></nav>
     <div class="masthead-right"><span class="status-dot" aria-hidden="true"></span><span id="header-status">Connecting to simulation</span></div>
   </header>
-  <main>
-    <section class="document-window" aria-labelledby="room-title">
-      <div class="window-titlebar"><span class="window-box" aria-hidden="true"></span><div class="title-stripes" aria-hidden="true"></div><h1 id="room-title">Live motor room</h1><div class="title-stripes" aria-hidden="true"></div><span class="window-box window-zoom" aria-hidden="true"></span></div>
-      <div class="document-info"><span>fly.connectome</span><span>Continuous simulation <span class="info-divider">/</span> Read only</span></div>
-      <section class="room" aria-label="Live fly pose and model signals">
-        <div class="canvas-stage">
-          <canvas id="room-canvas" role="img" aria-label="Latest received simulated motor-neuron state rendered as a pixel-art fly pose. No interpolated or scripted body motion."></canvas>
-          <div class="scene-title"><p>01 / SIGNAL ROOM</p></div>
-          <div class="loading" id="loading"><span>Waiting for the first server state…</span></div>
-        </div>
-        <aside class="readout" aria-label="Latest received model signals">
-          <div class="panel-heading"><span>Model signals</span><span id="signal-state">WAITING</span></div>
-          <div class="signal-block"><div class="signal-row"><span><i class="swatch dopamine" aria-hidden="true"></i>Dopamine</span><strong id="dopamine-value">—</strong></div><div class="meter"><div id="dopamine-meter"></div></div></div>
-          <div class="signal-block"><div class="signal-row"><span><i class="swatch npf" aria-hidden="true"></i>NPF signal</span><strong id="npf-value">—</strong></div><div class="meter npf-meter"><div id="npf-meter"></div></div></div>
-          <div class="rate-row"><span>Motor population mean</span><strong><span id="rate-value">—</span> <small>Hz</small></strong></div>
-          <p class="readout-note">DA / NPF values use model units.</p>
-          <div id="motor-trace-panel" class="motor-trace-panel" hidden><span>LF TROCHANTER FLEXORS</span><canvas id="motor-trace" width="192" height="58" role="img" aria-label="Recent received left-front motor channel rates in hertz, with an autoscaled vertical axis."></canvas><p id="motor-trace-range">Waiting for motor samples.</p></div>
-          <div class="readout-stamp" aria-hidden="true"><svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path d="M8 4h8v4h4v6h8V8h4V4h8v10h-4v6h-6v4h6v4h8v4H34v-4h-4v8h6v4h4v4h-8v-4h-4v4h-8v-4h-4v4H8v-4h4v-4h6v-8h-4v4H4v-4h8v-4h6v-4h-6v-6H8z"/></svg><span>STATE → POSE</span></div>
-        </aside>
-        <div class="scene-bottom"><span class="scene-label"><span class="tiny-cross" aria-hidden="true">+</span><span id="motor-counts">WAITING FOR NEURON MAPPING</span></span><button id="scene-mode" class="scene-button" type="button" aria-pressed="false">Hide labels</button></div>
-      </section>
-      <section class="live-status-panel" aria-label="Live connection and simulation progress">
-        <div class="connection-row"><span id="connection-badge" class="connection-badge">Connecting</span><p id="connection-note" role="status" aria-live="polite">Opening the live simulation stream.</p><span id="last-received">No state received</span></div>
-        <div class="live-stats">
-          <div><span>Simulated time</span><strong id="sim-time">—</strong></div>
-          <div><span>Integration step</span><strong id="step-value">—</strong></div>
-          <div><span>Sim / wall time</span><strong id="realtime-factor">—</strong></div>
-          <div><span>Server uptime</span><strong id="uptime-value">—</strong></div>
-          <div><span>Server wall clock</span><strong id="server-clock">—</strong></div>
-        </div>
-        <p class="live-mechanics">Motor neurons → muscle torques → body &amp; floor <span>Latest server pose. No playback clock.</span></p>
-        <div id="model-details" class="model-notes"><p><a href="model-notes.html">Read: reward, the Good Drug Guide &amp; the assumptions about experience →</a></p><details class="live-details"><summary>Engine, endpoint &amp; model assumptions</summary><p id="backend-endpoint"></p><pre id="model-record">Waiting for /api/meta.</pre></details></div>
-      </section>
-      <div class="window-foot"><span>LIVE CONNECTOME / ONE RUNNING NETWORK</span><span class="resize-grip" aria-hidden="true"></span></div>
+  <main class="live-main">
+    <section class="room" aria-label="Live fly simulation">
+      <div class="canvas-stage">
+        <canvas id="room-canvas" role="img" aria-label="Latest received simulated motor-neuron state rendered as a pixel-art fly pose. No interpolated or scripted body motion."></canvas>
+        <div class="scene-title"><p>01 / SIGNAL ROOM</p></div>
+        <div class="loading" id="loading" role="status"><span>Waiting for the first server state…</span></div>
+      </div>
     </section>
-    <footer><p>The server advances the neural simulation; this page observes it. The front-leg circuit uses published rate equations with an experimental motor-excitability intervention. Muscle, body and contact parameters are assumptions. The renderer projects the server’s computed leg geometry. Head, abdomen and wings have no independent actuation. A stale or disconnected stream holds the last received pose.</p><span>READ ONLY / LIVE STATE</span></footer>
-    <noscript><p class="live-error">Enable JavaScript to receive the live stream. No recorded replay is substituted for a connection.</p></noscript>
+    <noscript><p class="live-error">Enable JavaScript to receive the live simulation.</p></noscript>
   </main>
   <script src="live-config.js"></script>
   <script src="fly.js?v=bf3feae55a75"></script>
   <script src="live.js?v=872e48eb9475"></script>
-  <script src="live-room.js?v=8e59844cb6c0"></script>
+  <script src="live-room.js?v=66717d2455a2"></script>
 </body>
 </html>
