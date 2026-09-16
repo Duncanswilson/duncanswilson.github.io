@@ -104,3 +104,61 @@ def test_invalid_integration_requests_are_rejected():
         with pytest.raises(ValueError):
             circuit.advance(dt)
     assert circuit.ticks == 0
+
+
+@pytest.mark.parametrize('kwargs',[
+    {'motor_gain':0}, {'motor_gain':np.inf}, {'motor_gain':501},
+    {'motor_bias':-1}, {'motor_bias':np.nan},
+    {'motor_threshold_scale':-1}, {'motor_threshold_scale':1.1},
+])
+def test_invalid_motor_interventions_are_rejected(kwargs):
+    with pytest.raises(ValueError,match='motor_'):
+        FrontCPGCircuit(cpg_graph(),**kwargs)
+
+
+def recruited_circuit(**kwargs):
+    from flyreward.server import continuous_config
+    config = continuous_config('cpg','recruited')
+    params = dict(stimulus=config.cpg_stimulus, motor_gain=config.cpg_motor_gain,
+                  motor_bias=config.cpg_motor_bias,
+                  motor_threshold_scale=config.cpg_motor_threshold_scale,
+                  motor_target=config.cpg_motor_target)
+    return FrontCPGCircuit(cpg_graph(),**(params | kwargs))
+
+
+def test_recruitment_amplifies_real_motor_cells_in_both_front_legs():
+    circuit = recruited_circuit()
+    frames = record(circuit)[100:]
+    cells = {c['id']:c for c in load_cpg_asset()['neurons']}
+    selected = circuit.metadata()['motor_stimulation']['target_body_ids']
+    assert {cells[body]['type'] for body in selected} == {
+        'Tr flexor MN','Acc. tr flexor MN','Ti extensor MN'}
+    expected = {body for body,c in cells.items() if c['motor'] and c['type'] in {
+        'Tr flexor MN','Acc. tr flexor MN','Ti extensor MN'}}
+    assert set(selected) == expected and len(selected) == 24
+    unselected = ~np.isin(circuit.ids,selected)
+    baseline = FrontCPGCircuit(cpg_graph())
+    np.testing.assert_array_equal(circuit._gain_over_cap[unselected],baseline._gain_over_cap[unselected])
+    np.testing.assert_array_equal(circuit._threshold[unselected],baseline._threshold[unselected])
+    for side in ('L','R'):
+        indices = [i for i,body in enumerate(circuit.motor_neuron_ids)
+                   if cells[int(body)]['side']==side and cells[int(body)]['type'] in ('Tr flexor MN','Acc. tr flexor MN')]
+        assert np.ptp(frames[:,indices].mean(axis=1)) > 30.
+    assert frames.min() >= 0 and frames.max() <= 200.
+
+
+@pytest.mark.parametrize('intervention',[
+    {'stimulus':0}, {'silenced_cell_types':['IN17A001']},
+    {'silenced_cell_types':['INXXX466']},
+])
+def test_recruited_motor_rhythm_still_requires_the_neural_circuit(intervention):
+    frames = record(recruited_circuit(**intervention))[100:]
+    assert np.ptp(frames,axis=0).max() < 1e-5
+
+
+def test_recruited_circuit_numerical_refinement():
+    coarse = record(recruited_circuit())
+    fine = record(recruited_circuit(internal_dt=.0005))
+    assert np.max(np.abs(coarse-fine)) < 2.
+    assert np.sqrt(np.mean((coarse-fine)**2)) < .15
+    np.testing.assert_allclose(np.ptp(coarse[100:],axis=0),np.ptp(fine[100:],axis=0),atol=.5,rtol=.01)

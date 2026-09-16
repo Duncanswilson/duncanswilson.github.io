@@ -8,7 +8,7 @@ not a validated whole-animal or pleasure model.
 """
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 import hashlib
 from pathlib import Path
 
@@ -18,6 +18,17 @@ from .body import ReducedBody
 from .cpg import FrontCPGCircuit
 from .live_model import LiveSimulation, _digest_json
 from .motor import LEGS, JOINTS
+from .types import SimulationConfig
+
+
+@dataclass
+class CPGConfig(SimulationConfig):
+    """Persist the intervention without altering the original rate-mode config."""
+    cpg_stimulus: float = 400.0
+    cpg_motor_gain: float = 1.0
+    cpg_motor_bias: float = 0.0
+    cpg_motor_threshold_scale: float = 1.0
+    cpg_motor_target: str = "all"
 
 
 class CPGSimulation(LiveSimulation):
@@ -29,8 +40,12 @@ class CPGSimulation(LiveSimulation):
     def __init__(self, graph, config, mapping):
         if config.max_rate != 200:
             raise ValueError("The front circuit uses a 200 Hz ceiling")
+        config = CPGConfig(**asdict(config))
         super().__init__(graph, config, mapping)
-        self.circuit = FrontCPGCircuit(graph)
+        self.circuit = FrontCPGCircuit(graph, stimulus=config.cpg_stimulus,
+            motor_gain=config.cpg_motor_gain, motor_bias=config.cpg_motor_bias,
+            motor_threshold_scale=config.cpg_motor_threshold_scale,
+            motor_target=config.cpg_motor_target)
         self.body = ReducedBody()
         if self.dopamine_mask[self.circuit.graph_indices].any():
             raise ValueError("Front circuit ownership conflicts with the dopamine clamp")
@@ -123,3 +138,11 @@ class CPGSimulation(LiveSimulation):
         self.circuit.rates[:] = arrays["circuit_rates"]
         self.circuit.ticks = int(arrays["circuit_ticks"])
         self.body = body
+
+    @classmethod
+    def from_checkpoint(cls, path, graph, mapping):
+        """Restore the exact saved intervention as well as its neural/body state."""
+        metadata, arrays = cls._read_checkpoint(path)
+        simulation = cls(graph, CPGConfig(**metadata["config"]), mapping)
+        simulation._restore(metadata, arrays)
+        return simulation

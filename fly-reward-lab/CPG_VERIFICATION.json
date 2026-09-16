@@ -1,19 +1,24 @@
 {
-  "checked_utc": "2026-09-15T23:24:25.585488+00:00",
+  "checked_utc": "2026-09-16T00:22:59.809697+00:00",
   "scope": "Local quantitative test using the complete real MaleCNS graph; no live VPS state was changed.",
   "model": "MaleCNS hybrid front-leg CPG and rate hypothesis model",
   "config": {
     "duration": 20,
     "dt": 0.01,
     "seed": 7,
-    "preset": "continuous_front_cpg",
+    "preset": "continuous_front_cpg_recruited",
     "dopamine_drive": 0.5,
     "reuptake_factor": 0.1,
     "npf_drive": 1,
     "tolerance": false,
     "max_rate": 200,
     "network_gain": 0.6,
-    "record_every": 1
+    "record_every": 1,
+    "cpg_stimulus": 350.0,
+    "cpg_motor_gain": 100.0,
+    "cpg_motor_bias": 0.0,
+    "cpg_motor_threshold_scale": 0.0,
+    "cpg_motor_target": "trochanter_flexors_tibia_extensors"
   },
   "neuron_count": 165122,
   "directed_edge_count": 25563197,
@@ -25,15 +30,57 @@
     "motor_neurons": 130,
     "internal_dt_seconds": 0.001,
     "rate_cap_hz": 200.0,
-    "stimulus": 400.0,
+    "stimulus": 350.0,
     "stimulated_body_ids": [
       10045,
       10056
     ],
     "stimulus_onset_seconds": 0.02,
+    "motor_stimulation": {
+      "gain_multiplier": 100.0,
+      "tonic_bias_model_units": 0.0,
+      "threshold_multiplier": 0.0,
+      "target": "trochanter_flexors_tibia_extensors",
+      "target_cell_types": [
+        "Acc. tr flexor MN",
+        "Ti extensor MN",
+        "Tr flexor MN"
+      ],
+      "target_body_ids": [
+        800636,
+        804257,
+        807873,
+        810639,
+        814489,
+        815344,
+        815678,
+        816648,
+        817640,
+        818389,
+        818719,
+        820130,
+        820668,
+        821291,
+        823168,
+        823281,
+        828939,
+        903010,
+        909618,
+        911134,
+        914655,
+        1050306082,
+        1050349786,
+        1051670893
+      ],
+      "target_count": 24,
+      "excitability_applied_from_seconds": 0.0,
+      "tonic_bias_onset_seconds": 0.02,
+      "equation": "Motor cells: target=max(200*tanh((gain_multiplier/(200*size))*(signed_synaptic_input+tonic_bias-7.5*size*threshold_multiplier)),0).",
+      "interpretation": "Assumed motor-cell excitability and tonic input; not a measured drug effect. Constant parameters, no imposed rhythm or movement trajectory."
+    },
     "silenced_cell_types": [],
     "solver": "classical fourth-order Runge-Kutta",
-    "parameter_choice": "Deterministic published distribution means; no sampled or fitted per-cell physiology.",
+    "parameter_choice": "Deterministic published distribution means; no sampled or fitted per-cell physiology. Motor intervention, when non-neutral, overrides the selected cells' baseline gain/threshold/input as declared above.",
     "source_commit": "faee4b06869855ae0164cbf217fb6ec28ef3521b",
     "source_paper": "https://doi.org/10.1101/2025.09.12.675944",
     "adaptation": "Published MaleCNS T1 neuron selection, neuron sizes, presynaptic sign and nonzero VNC edge mask; retained edges use exact current MaleCNS v1.0 full-CNS synapse counts >=5. This is an adaptation, not an exact reproduction of the published network or VNC-only counts. No edges absent from the published mask are added.",
@@ -202,29 +249,29 @@
     "sensory_mapping": "Position, velocity and contact-load channels are diagnostics only; no biological sensory-neuron assignment is made here."
   },
   "sample_period_seconds": 0.01,
-  "trajectory_seconds": 5.0,
-  "samples": 501,
+  "trajectory_seconds": 12.0,
+  "samples": 1201,
   "analysis_window_seconds": [
-    2.0,
-    5.0
+    4.0,
+    12.0
   ],
   "raw_circuit_motor_neurons": 130,
   "raw_circuit_motor_ptp_hz": {
-    "800061": 5.078265279531479,
-    "800636": 0.0,
+    "800061": 3.1883418560028076,
+    "800636": 22.86960083246231,
     "801079": 0.0,
-    "801173": 11.995758533477783,
+    "801173": 8.873972415924072,
     "801469": 0.0,
     "801685": 0.0,
-    "801824": 4.68751060962677,
+    "801824": 2.9867877811193466,
     "801915": 0.0,
     "801918": 0.0,
-    "802072": 3.9702014923095703,
+    "802072": 3.130983516573906,
     "802361": 0.0,
-    "802509": 6.157889276742935,
+    "802509": 5.488031387329102,
     "802552": 0.0,
     "803237": 0.0,
-    "803314": 1.1059854850172997,
+    "803314": 3.2650720328092575,
     "803412": 0.0,
     "803698": 0.0,
     "803803": 0.0,
@@ -253,16 +300,16 @@
     "810098": 0.0,
     "810535": 0.0,
     "810541": 0.0,
-    "810639": 5.660139486193657,
+    "810639": 139.92041301727295,
     "811652": 0.0,
     "812111": 0.0,
     "813480": 0.0,
     "813566": 0.0,
     "814163": 0.0,
-    "814489": 1.719726026058197,
+    "814489": 140.27581214904785,
     "815246": 0.0,
-    "815344": 0.0,
-    "815678": 0.0,
+    "815344": 115.05724382400513,
+    "815678": 10.620053052902222,
     "815854": 0.0,
     "816215": 0.0,
     "816404": 0.0,
@@ -272,31 +319,31 @@
     "817347": 0.0,
     "817509": 0.0,
     "817595": 0.0,
-    "817640": 0.0,
+    "817640": 119.59285545349121,
     "817655": 0.0,
     "818057": 0.0,
-    "818389": 0.0,
+    "818389": 98.29008436203003,
     "818553": 0.0,
-    "818719": 0.0,
+    "818719": 0.07031377404928207,
     "818842": 0.0,
     "819278": 0.0,
     "819384": 0.0,
     "819869": 0.0,
     "820110": 0.0,
-    "820130": 0.0,
-    "820668": 0.6345733385533094,
+    "820130": 100.42633247375488,
+    "820668": 110.8149185180664,
     "820896": 0.0,
     "821291": 0.0,
     "821635": 0.0,
     "822047": 0.0,
     "822092": 0.0,
     "822274": 0.0,
-    "823168": 3.0510059222579002,
+    "823168": 144.6033000946045,
     "823281": 0.0,
     "825516": 0.0,
     "825721": 0.0,
     "827188": 0.0,
-    "828939": 3.083225667476654,
+    "828939": 115.40408325195312,
     "830039": 0.0,
     "833140": 0.0,
     "835074": 0.0,
@@ -304,7 +351,7 @@
     "838321": 0.0,
     "860084": 0.0,
     "867630": 0.0,
-    "903010": 0.0,
+    "903010": 58.97897529602051,
     "903298": 0.0,
     "909521": 0.0,
     "909618": 0.0,
@@ -313,7 +360,7 @@
     "910334": 0.0,
     "911134": 0.0,
     "911453": 0.0,
-    "914655": 0.0,
+    "914655": 102.35295486450195,
     "919509": 0.0,
     "924189": 0.0,
     "924716": 0.0,
@@ -333,7 +380,7 @@
     "1050306082": 0.0,
     "1050335829": 0.0,
     "1050340850": 0.0,
-    "1050349786": 0.0,
+    "1050349786": 0.3687184900045395,
     "1050403926": 0.0,
     "1050615112": 0.0,
     "1050660827": 0.0,
@@ -341,15 +388,15 @@
     "1051670893": 0.0,
     "1057471940": 0.0
   },
-  "raw_circuit_motor_max_ptp_hz": 11.995758533477783,
+  "raw_circuit_motor_max_ptp_hz": 144.6033000946045,
   "channels": [
     {
       "leg": "LF",
       "joint": "trochanter",
       "action": "flexor",
-      "minimum_hz": 3.430412657558918,
-      "maximum_hz": 4.635503768920898,
-      "peak_to_peak_hz": 1.2050911113619804
+      "minimum_hz": 12.048053524710916,
+      "maximum_hz": 66.6843410838734,
+      "peak_to_peak_hz": 54.63628755916249
     },
     {
       "leg": "LF",
@@ -371,205 +418,238 @@
       "leg": "LF",
       "joint": "tibia",
       "action": "extensor",
-      "minimum_hz": 0.0,
-      "maximum_hz": 0.0,
-      "peak_to_peak_hz": 0.0
+      "minimum_hz": 2.5425326824188232,
+      "maximum_hz": 70.89961814880371,
+      "peak_to_peak_hz": 68.35708546638489
     },
     {
       "leg": "LM",
       "joint": "trochanter",
       "action": "flexor",
-      "minimum_hz": 38.833235846625435,
-      "maximum_hz": 38.87623553805881,
-      "peak_to_peak_hz": 0.04299969143337279
+      "minimum_hz": 38.87629487779405,
+      "maximum_hz": 38.87639808654785,
+      "peak_to_peak_hz": 0.00010320875379932204
     },
     {
       "leg": "LM",
       "joint": "trochanter",
       "action": "extensor",
-      "minimum_hz": 37.185720443725586,
-      "maximum_hz": 37.2354736328125,
-      "peak_to_peak_hz": 0.04975318908691406
+      "minimum_hz": 37.21285820007324,
+      "maximum_hz": 37.22222137451172,
+      "peak_to_peak_hz": 0.009363174438476562
     },
     {
       "leg": "LM",
       "joint": "tibia",
       "action": "flexor",
-      "minimum_hz": 37.789280978116125,
-      "maximum_hz": 37.83101133866744,
-      "peak_to_peak_hz": 0.04173036055131263
+      "minimum_hz": 37.831452109596945,
+      "maximum_hz": 37.8315877047452,
+      "peak_to_peak_hz": 0.00013559514825800534
     },
     {
       "leg": "LM",
       "joint": "tibia",
       "action": "extensor",
-      "minimum_hz": 44.36860656738281,
-      "maximum_hz": 44.41872215270996,
-      "peak_to_peak_hz": 0.05011558532714844
+      "minimum_hz": 44.40568923950195,
+      "maximum_hz": 44.40639114379883,
+      "peak_to_peak_hz": 0.000701904296875
     },
     {
       "leg": "LH",
       "joint": "trochanter",
       "action": "flexor",
-      "minimum_hz": 39.070190005832245,
-      "maximum_hz": 39.11503558688693,
-      "peak_to_peak_hz": 0.0448455810546875
+      "minimum_hz": 39.10512373182509,
+      "maximum_hz": 39.1051991780599,
+      "peak_to_peak_hz": 7.544623480981727e-05
     },
     {
       "leg": "LH",
       "joint": "trochanter",
       "action": "extensor",
-      "minimum_hz": 39.01029968261719,
-      "maximum_hz": 39.05692672729492,
-      "peak_to_peak_hz": 0.046627044677734375
+      "minimum_hz": 39.04534149169922,
+      "maximum_hz": 39.04546356201172,
+      "peak_to_peak_hz": 0.0001220703125
     },
     {
       "leg": "LH",
       "joint": "tibia",
       "action": "flexor",
-      "minimum_hz": 38.146833419799805,
-      "maximum_hz": 38.188088921939624,
-      "peak_to_peak_hz": 0.0412555021398191
+      "minimum_hz": 38.182362724752984,
+      "maximum_hz": 38.18241231581744,
+      "peak_to_peak_hz": 4.9591064453125e-05
     },
     {
       "leg": "LH",
       "joint": "tibia",
       "action": "extensor",
-      "minimum_hz": 39.33865165710449,
-      "maximum_hz": 39.38340187072754,
-      "peak_to_peak_hz": 0.044750213623046875
+      "minimum_hz": 39.37846565246582,
+      "maximum_hz": 39.3785343170166,
+      "peak_to_peak_hz": 6.866455078125e-05
     },
     {
       "leg": "RF",
       "joint": "trochanter",
       "action": "flexor",
-      "minimum_hz": 0.0030193092301487924,
-      "maximum_hz": 0.06647664308547974,
-      "peak_to_peak_hz": 0.06345733385533095
+      "minimum_hz": 20.385813388600944,
+      "maximum_hz": 68.27811234295368,
+      "peak_to_peak_hz": 47.89229895435273
     },
     {
       "leg": "RF",
       "joint": "trochanter",
-      "action": "extensor",
-      "minimum_hz": 0.0,
-      "maximum_hz": 0.0,
-      "peak_to_peak_hz": 0.0
-    },
-    {
-      "leg": "RF",
-      "joint": "tibia",
-      "action": "flexor",
-      "minimum_hz": 3.072983605521066,
-      "maximum_hz": 3.0805672236851285,
-      "peak_to_peak_hz": 0.0075836181640625
-    },
-    {
-      "leg": "RF",
-      "joint": "tibia",
       "action": "extensor",
       "minimum_hz": 0.0,
       "maximum_hz": 0.0,
       "peak_to_peak_hz": 0.0
     },
     {
+      "leg": "RF",
+      "joint": "tibia",
+      "action": "flexor",
+      "minimum_hz": 3.081814629690988,
+      "maximum_hz": 3.0864879063197543,
+      "peak_to_peak_hz": 0.004673276628766487
+    },
+    {
+      "leg": "RF",
+      "joint": "tibia",
+      "action": "extensor",
+      "minimum_hz": 1.132306694984436,
+      "maximum_hz": 6.442333221435547,
+      "peak_to_peak_hz": 5.310026526451111
+    },
+    {
       "leg": "RM",
       "joint": "trochanter",
       "action": "flexor",
-      "minimum_hz": 39.98104985555013,
-      "maximum_hz": 40.0250358581543,
-      "peak_to_peak_hz": 0.0439860026041643
+      "minimum_hz": 40.01979022555881,
+      "maximum_hz": 40.01997333102756,
+      "peak_to_peak_hz": 0.00018310546875
     },
     {
       "leg": "RM",
       "joint": "trochanter",
       "action": "extensor",
-      "minimum_hz": 37.912614822387695,
-      "maximum_hz": 37.964590072631836,
-      "peak_to_peak_hz": 0.051975250244140625
+      "minimum_hz": 37.9464054107666,
+      "maximum_hz": 37.95991134643555,
+      "peak_to_peak_hz": 0.013505935668945312
     },
     {
       "leg": "RM",
       "joint": "tibia",
       "action": "flexor",
-      "minimum_hz": 38.942661632191054,
-      "maximum_hz": 38.98620189319957,
-      "peak_to_peak_hz": 0.04354026100851627
+      "minimum_hz": 38.98596780950373,
+      "maximum_hz": 38.986047918146305,
+      "peak_to_peak_hz": 8.0108642578125e-05
     },
     {
       "leg": "RM",
       "joint": "tibia",
       "action": "extensor",
-      "minimum_hz": 41.51646041870117,
-      "maximum_hz": 41.565303802490234,
-      "peak_to_peak_hz": 0.0488433837890625
+      "minimum_hz": 41.556081771850586,
+      "maximum_hz": 41.55701446533203,
+      "peak_to_peak_hz": 0.0009326934814453125
     },
     {
       "leg": "RH",
       "joint": "trochanter",
       "action": "flexor",
-      "minimum_hz": 41.269026862250435,
-      "maximum_hz": 41.31585142347548,
-      "peak_to_peak_hz": 0.04682456122504419
+      "minimum_hz": 41.3084462483724,
+      "maximum_hz": 41.308508978949654,
+      "peak_to_peak_hz": 6.273057725536546e-05
     },
     {
       "leg": "RH",
       "joint": "trochanter",
       "action": "extensor",
-      "minimum_hz": 38.278459548950195,
-      "maximum_hz": 38.320608139038086,
-      "peak_to_peak_hz": 0.042148590087890625
+      "minimum_hz": 38.31432342529297,
+      "maximum_hz": 38.31439781188965,
+      "peak_to_peak_hz": 7.43865966796875e-05
     },
     {
       "leg": "RH",
       "joint": "tibia",
       "action": "flexor",
-      "minimum_hz": 37.90411567687988,
-      "maximum_hz": 37.94675636291504,
-      "peak_to_peak_hz": 0.04264068603515625
+      "minimum_hz": 37.94303238391876,
+      "maximum_hz": 37.94310963153839,
+      "peak_to_peak_hz": 7.724761962890625e-05
     },
     {
       "leg": "RH",
       "joint": "tibia",
       "action": "extensor",
-      "minimum_hz": 39.47193145751953,
-      "maximum_hz": 39.519269943237305,
-      "peak_to_peak_hz": 0.04733848571777344
+      "minimum_hz": 39.51097106933594,
+      "maximum_hz": 39.51111030578613,
+      "peak_to_peak_hz": 0.0001392364501953125
     }
   ],
   "joint_peak_to_peak_degrees": {
-    "LF_trochanter": 0.004303091625506428,
-    "LF_tibia": 0.007848545633972324,
-    "LM_trochanter": 0.00026519272374356836,
-    "LM_tibia": 0.0005572933283171836,
-    "LH_trochanter": 0.00031666284609641065,
-    "LH_tibia": 0.00065808966722812,
-    "RF_trochanter": 0.00030409514502084147,
-    "RF_tibia": 0.0005827745410150906,
-    "RM_trochanter": 0.00032151888415120317,
-    "RM_tibia": 0.0006683165888012966,
-    "RH_trochanter": 0.0002666329068922162,
-    "RH_tibia": 0.0005672718535186809
+    "LF_trochanter": 2.564479150977153,
+    "LF_tibia": 4.663313287454142,
+    "LM_trochanter": 0.0003101159698026757,
+    "LM_tibia": 0.0021053213124989307,
+    "LH_trochanter": 0.00031844098962945675,
+    "LH_tibia": 0.0021158083732870313,
+    "RF_trochanter": 1.5829156922549175,
+    "RF_tibia": 2.8789081818516555,
+    "RM_trochanter": 0.0003259456252857545,
+    "RM_tibia": 0.002259967120753864,
+    "RH_trochanter": 0.00030411987670871126,
+    "RH_tibia": 0.002226174834853315
   },
   "body_peak_to_peak_mm": [
-    3.7394409185335085e-07,
-    4.432289839755889e-07,
-    4.0618124771962805e-07
+    0.00022756984749147031,
+    0.00021005194385974367,
+    2.4951563655395415e-05
   ],
   "body_projected_peak_to_peak_actor_pixels": [
-    2.2494497623800312e-05,
-    3.822571204814551e-05
+    0.017036233898876516,
+    0.009680630795822154
   ],
   "foot_projected_bbox_diagonal_actor_pixels": {
-    "LF": 0.00023641516635601728,
-    "LM": 6.0004625454932546e-05,
-    "LH": 7.826382895315061e-05,
-    "RF": 5.3989680267657113e-05,
-    "RM": 0.00011552250282121566,
-    "RH": 0.00010616696842571413
+    "LF": 0.03559131695961206,
+    "LM": 0.01973833395272958,
+    "LH": 0.019645649518721178,
+    "RF": 0.0579857077117531,
+    "RM": 0.019892912376069077,
+    "RH": 0.019764324456680374
   },
+  "leg_point_projected_bbox_diagonal_actor_pixels": {
+    "LF": {
+      "hip": 0.019594587978891072,
+      "knee": 2.5048330761480706,
+      "foot": 0.03559131695961206
+    },
+    "LM": {
+      "hip": 0.01959458797888335,
+      "knee": 0.019589554220239603,
+      "foot": 0.01973833395272958
+    },
+    "LH": {
+      "hip": 0.019594587978891072,
+      "knee": 0.019603869156128585,
+      "foot": 0.019645649518721178
+    },
+    "RF": {
+      "hip": 0.01959458797889129,
+      "knee": 1.7162296733455384,
+      "foot": 0.0579857077117531
+    },
+    "RM": {
+      "hip": 0.019594587978883568,
+      "knee": 0.01965279059589233,
+      "foot": 0.019892912376069077
+    },
+    "RH": {
+      "hip": 0.01959458797889129,
+      "knee": 0.01966673427238256,
+      "foot": 0.019764324456680374
+    }
+  },
+  "maximum_leg_point_projected_bbox_diagonal_actor_pixels": 2.5048330761480706,
   "projection_note": "Uses FlyActor projectBodyPoint: [85*x+22*y,48*y-85*z], before room scale/pixel rasterization. Foot values are bounding-box diagonal upper bounds, not exaggerated display motion.",
   "same_snapshot_channel_agreement": {
-    "snapshots_checked": 501,
+    "snapshots_checked": 1201,
     "channels_each": 24,
     "exact": true
   },
@@ -578,21 +658,21 @@
     "run_identity_preserved": true
   },
   "performance": {
-    "load_wall_seconds": 2.4091440830379725,
-    "five_simulated_seconds_wall_seconds": 16.562699417001568,
-    "simulated_seconds_per_wall_second": 0.30188315769756185,
-    "peak_rss_bytes_including_second_engine_for_restart_test": 1640529920
+    "load_wall_seconds": 2.7137163329753093,
+    "trajectory_wall_seconds": 42.52758083405206,
+    "simulated_seconds_per_wall_second": 0.2821698240213922,
+    "peak_rss_bytes_including_second_engine_for_restart_test": 1595703296
   },
   "source_sha256": {
     "live_model.py": "c23f5b68d2819aba8219bb4a8e77392e72ada631182d50cd39b0b1e1be1875bd",
-    "server.py": "7afdffd7f3fd1bf09cff8f0ddf01ba86fe7e62a9f6736e607fa4c1d50f6af49d",
+    "server.py": "27fdd45f5d52f3f2fda951005c6a4af68028817aeb2d6547daaee61c1d183591",
     "model.py": "97bda28367fe72aa5041208bec06418dd74576647c81d7e1999eecaafe845a85",
-    "cpg.py": "5973dc09547aac249683d0042255c7e3baf571180868d398c96edc31103a36f2",
-    "cpg_live.py": "896c671d16c7998ca175a60e5d9d75d0834b6e9bb1a6051ca583533b4daf5071",
+    "cpg.py": "3272d7aa7184d76e5c4f2ebff002705f314ff791e976ab2ff45e103aab2f1d9e",
+    "cpg_live.py": "a01253244e3600686ff4eebdb10f8edbef7aab91ff466db6f5793b2d5c4fbf64",
     "body.py": "ded5ad96094e88422da6a81bef5318f9d916ccbff3e03f27c9b6dea27e56b6c1",
     "visualizer/fly.js": "bf3feae55a75445086d134a251f4ae7efd4f04c276bb5ab6a64eb19d31c599e2"
   },
-  "trace_sha256": "7f9d6dbd09460865862570d4e71a2cdaf8ac72621d158622df64bc05d8234684",
+  "trace_sha256": "87f3e6b2412c09cf1e73b9335e9143e36add2712cd45a3f8b45a89a9f7477462",
   "limitations": [
     "Only the declared front circuit has autonomous rhythmic dynamics; surrounding cells use the prior rate model.",
     "Tonic CPG input is independent of dopamine/NPF; body diagnostics are not fed into sensory neurons.",

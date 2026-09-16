@@ -8,6 +8,8 @@ Build the current `fly-reward-lab/` directory using its Dockerfile. The Python w
 
 The circuit/body engine has a separate checkpoint schema and mechanism fingerprint. Do not point it at the older `/state/live` directory. Use `/state/live-cpg-v1` and retain the original state and image for rollback. The new model begins a new run with a distinct `run_id`.
 
+The stronger motor-recruitment release is another distinct mechanism. Use `/state/live-motor-recruited-v1`, retain `/state/live-cpg-v1` and its image, and explicitly pass `--motor-stimulation recruited`. Its configuration includes all motor gain, threshold, target-selection and descending-input parameters. A checkpoint created with a different intervention is rejected rather than silently resumed or reset.
+
 The running service must remain a single worker. No new cloud service, port, credentials or paid resource is required. Caddy and its TLS volume remain unchanged.
 
 ## Versioned update
@@ -22,7 +24,7 @@ services:
     build:
       context: /opt/fly-reward-lab-cpg-COMMIT
     image: fly-reward-lab:cpg-COMMIT
-    command: ["python", "-m", "flyreward.server", "--host", "0.0.0.0", "--port", "8000", "--data-dir", "/state/data", "--state-dir", "/state/live-cpg-v1", "--viewer-dir", "/app/visualizer", "--motor-mode", "cpg"]
+    command: ["python", "-m", "flyreward.server", "--host", "0.0.0.0", "--port", "8000", "--data-dir", "/state/data", "--state-dir", "/state/live-motor-recruited-v1", "--viewer-dir", "/app/visualizer", "--motor-mode", "cpg", "--motor-stimulation", "recruited"]
 ```
 
 Use the existing environment file and all three Compose files:
@@ -39,6 +41,8 @@ sudo docker compose --project-directory /opt/fly-reward-lab/deploy \
 Record the third file in the deployment environment's `COMPOSE_FILE` so future routine commands keep the same configuration. The backend creates its new state subdirectory in the existing volume as UID 10001.
 
 Verify `/api/health` is ready, `/api/meta` says `motor_mode: cpg`, multiple `/api/state` values advance with one run ID, raw `/api/neurons` averages equal channel rates, and body geometry is present. An SSE connection alone is not proof of advancement. Verify the visible viewer receives these states too.
+
+For recruitment, also confirm `circuit.motor_stimulation` reports gain 100, threshold multiplier 0, target `trochanter_flexors_tibia_extensors`, 24 target IDs, and descending stimulus 350. Measure actual joint geometry and visible leg pixels after settling; advancing counters alone do not establish motion.
 
 ## Rollback
 

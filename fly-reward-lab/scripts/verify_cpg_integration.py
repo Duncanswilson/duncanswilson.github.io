@@ -35,6 +35,8 @@ def main():
                         help="Simulated duration, in whole 10 ms steps (default: 5)")
     parser.add_argument("--warmup-seconds", type=float, default=2.0,
                         help="Exclude earlier samples from variability measurements (default: 2)")
+    parser.add_argument("--motor-stimulation", choices=("baseline", "recruited"), default="baseline",
+                        help="Explicit motor-neuron intervention to verify")
     args = parser.parse_args()
     if not math.isfinite(args.seconds) or args.seconds <= 0:
         parser.error("--seconds must be positive and finite")
@@ -48,7 +50,7 @@ def main():
     sources["visualizer/fly.js"] = sha(REPO / "visualizer/fly.js")
     started = time.perf_counter()
     print("Loading actual MaleCNS graph and hybrid model", flush=True)
-    factory = graph_factory(args.data_dir, motor_mode="cpg")
+    factory = graph_factory(args.data_dir, motor_mode="cpg", motor_stimulation=args.motor_stimulation)
     engine, metadata = factory()
     quotient = args.seconds / engine.config.dt
     steps = round(quotient)
@@ -131,6 +133,7 @@ def main():
     joint_ptp = np.ptp(arrays["angles"][steady], axis=0)
     geometry_ptp = np.ptp(projected_geometry[steady], axis=0)
     feet_bounds = np.linalg.norm(geometry_ptp[:, 2, :], axis=-1)
+    point_bounds = np.linalg.norm(geometry_ptp, axis=-1)
     peak_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     peak_bytes = peak_rss if sys.platform == "darwin" else peak_rss * 1024
     report = {
@@ -154,6 +157,10 @@ def main():
         "body_peak_to_peak_mm": np.ptp(arrays["body"][steady], axis=0).tolist(),
         "body_projected_peak_to_peak_actor_pixels": np.ptp(projected_body[steady], axis=0).tolist(),
         "foot_projected_bbox_diagonal_actor_pixels": dict(zip(leg_order, feet_bounds.tolist())),
+        "leg_point_projected_bbox_diagonal_actor_pixels": {
+            leg: dict(zip(("hip", "knee", "foot"), point_bounds[i].tolist()))
+            for i, leg in enumerate(leg_order)},
+        "maximum_leg_point_projected_bbox_diagonal_actor_pixels": float(point_bounds.max()),
         "projection_note": "Uses FlyActor projectBodyPoint: [85*x+22*y,48*y-85*z], before room scale/pixel rasterization. Foot values are bounding-box diagonal upper bounds, not exaggerated display motion.",
         "same_snapshot_channel_agreement": {"snapshots_checked": agreement_checks, "channels_each": 24, "exact": True},
         "checkpoint_roundtrip_and_two_step_continuation": {"exact_all_numeric_arrays_and_snapshot": True,
@@ -174,6 +181,7 @@ def main():
                       "channel_max_ptp_hz": float(channel_ptp.max()),
                       "joint_max_ptp_degrees": float(joint_ptp.max()*180/np.pi),
                       "foot_max_projected_bound_actor_pixels": float(feet_bounds.max()),
+                      "leg_point_max_projected_bound_actor_pixels": float(point_bounds.max()),
                       "checkpoint_exact": True, "performance": report["performance"]}, indent=2), flush=True)
 
 

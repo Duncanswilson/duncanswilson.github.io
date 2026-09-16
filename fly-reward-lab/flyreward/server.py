@@ -35,7 +35,7 @@ PUBLIC_ORIGINS = ["https://duncanscottwilson.com", "https://www.duncanscottwilso
                   "https://duncanswilson.github.io"]
 
 
-def continuous_config(motor_mode: str = "rate") -> SimulationConfig:
+def continuous_config(motor_mode: str = "rate", motor_stimulation: str = "baseline") -> SimulationConfig:
     """Return explicit fixed inputs for the selected live neural dynamics.
 
     These are idealized model parameters, not pharmacological doses or a
@@ -43,13 +43,24 @@ def continuous_config(motor_mode: str = "rate") -> SimulationConfig:
     """
     if motor_mode not in {"rate", "cpg"}:
         raise ValueError("motor_mode must be rate or cpg")
+    if motor_stimulation not in {"baseline", "recruited"}:
+        raise ValueError("motor_stimulation must be baseline or recruited")
+    if motor_mode != "cpg" and motor_stimulation != "baseline":
+        raise ValueError("Motor recruitment requires --motor-mode cpg")
     if motor_mode == "cpg":
         # Holding DA firing at 100 Hz with a 200 Hz network ceiling changes
         # normalized dopamine release as well as motor normalization. This is
         # a distinct model configuration, not a continuation of the old run.
-        return SimulationConfig(duration=20, dt=0.01, seed=7, preset="continuous_front_cpg",
+        from .cpg_live import CPGConfig
+        intervention = ({"cpg_stimulus": 350.0, "cpg_motor_gain": 100.0,
+                         "cpg_motor_threshold_scale": 0.0,
+                         "cpg_motor_target": "trochanter_flexors_tibia_extensors"}
+                        if motor_stimulation == "recruited" else {})
+        return CPGConfig(duration=20, dt=0.01, seed=7,
+                                preset="continuous_front_cpg" + ("_recruited" if intervention else ""),
                                 dopamine_drive=0.5, reuptake_factor=0.1, npf_drive=1,
-                                tolerance=False, max_rate=200, network_gain=0.6, record_every=1)
+                                tolerance=False, max_rate=200, network_gain=0.6, record_every=1,
+                                **intervention)
     return SimulationConfig(duration=20, dt=0.01, seed=7, preset="continuous_best_tested",
                             dopamine_drive=1, reuptake_factor=0.1, npf_drive=1,
                             tolerance=False, max_rate=100, network_gain=0.6, record_every=1)
@@ -182,8 +193,8 @@ class SimulationService:
             return self.step, self.neurons_json if neurons else self.state_json
 
 
-def graph_factory(data_dir: Path, download=False, motor_mode: str = "rate"):
-    config = continuous_config(motor_mode)
+def graph_factory(data_dir: Path, download=False, motor_mode: str = "rate", motor_stimulation: str = "baseline"):
+    config = continuous_config(motor_mode, motor_stimulation)
     def factory():
         if download:
             download_data(data_dir)
@@ -220,6 +231,7 @@ def graph_factory(data_dir: Path, download=False, motor_mode: str = "rate"):
                 "The CPG drives the surrounding rate network; returned network input and DA/NPF modulation are not applied inside the CPG.",
                 "The 200 Hz rate-network ceiling with dopamine drive 0.5 holds DA firing at 100 Hz but changes normalized DA release and motor normalization.",
                 "Circuit and body parameters are model assumptions, not validated whole-animal behavior or evidence of pleasure.",
+                "Motor stimulation changes selected neurons' input-to-rate response, before actual motor averaging. It does not amplify rendered angles or prescribe movement.",
                 "A crash can lose progress since the last checkpoint. A restart changes stream_id.",
             ]
         return engine, metadata
@@ -343,9 +355,13 @@ def main():
     parser.add_argument("--checkpoint-seconds", type=float, default=60)
     parser.add_argument("--motor-mode", choices=("rate", "cpg"), default="rate",
                         help="Neural dynamics: original rate model or explicit hybrid front-leg CPG model")
+    parser.add_argument("--motor-stimulation", choices=("baseline", "recruited"), default="baseline",
+                        help="CPG intervention: published mean motor parameters, or stronger front trochanter-flexor/tibia-extensor excitability")
     parser.add_argument("--viewer-dir", type=Path, default=Path(__file__).resolve().parent.parent / "visualizer")
     args = parser.parse_args()
-    service = SimulationService(graph_factory(args.data_dir, args.download, args.motor_mode),
+    if args.motor_mode != "cpg" and args.motor_stimulation != "baseline":
+        parser.error("--motor-stimulation recruited requires --motor-mode cpg")
+    service = SimulationService(graph_factory(args.data_dir, args.download, args.motor_mode, args.motor_stimulation),
                                 args.state_dir / "checkpoint.npz", batch_steps=1 if args.motor_mode == "cpg" else 5,
                                 checkpoint_seconds=args.checkpoint_seconds)
     import uvicorn

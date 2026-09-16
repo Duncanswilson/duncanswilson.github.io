@@ -1,0 +1,99 @@
+{
+  "scope": "Actual 4309-cell front CPG, actual outside-CPG motor-channel residuals held at prior full-hybrid median, unchanged ReducedBody and40msactivationfilter. Requires independent full-hybrid validation for deployment.",
+  "parameters": {
+    "DN_stimulus": 350,
+    "motor_gain": 100,
+    "motor_threshold_scale": 0,
+    "motor_bias": 0,
+    "target_types": [
+      "Tr flexor MN",
+      "Acc. tr flexor MN",
+      "Ti extensor MN"
+    ],
+    "motor_target_count": 24
+  },
+  "analysis_window_seconds": [
+    4.01,
+    8.0
+  ],
+  "joint_ptp_degrees": {
+    "LF": [
+      2.5552891027621225,
+      4.646882209498171
+    ],
+    "LM": [
+      0.0003048841832028561,
+      0.002085236810501629
+    ],
+    "LH": [
+      0.00031768126908169047,
+      0.0021113420941778877
+    ],
+    "RF": [
+      1.5818140312836664,
+      2.8769222293547894
+    ],
+    "RM": [
+      0.00032726287743561726,
+      0.0022353570153690002
+    ],
+    "RH": [
+      0.00030367477789271555,
+      0.0022250019688526464
+    ]
+  },
+  "point_max_axis_ptp_actor_pixels": {
+    "LF": 2.4939180308370865,
+    "LM": 0.012320040988726078,
+    "LH": 0.012322944363489796,
+    "RF": 1.7045350981551621,
+    "RM": 0.012370530811502078,
+    "RH": 0.012321471694846764
+  },
+  "knee_bbox_diagonal_actor_pixels": {
+    "LF": 2.4973037974347645,
+    "LM": 0.013941987927986782,
+    "LH": 0.013955943082354955,
+    "RF": 1.7097777747682532,
+    "RM": 0.014006167621662662,
+    "RH": 0.014009657781809716
+  },
+  "body_translation_ptp_mm": [
+    0.00015550084295077872,
+    0.00014582764908472798,
+    2.495355221468487e-05
+  ],
+  "body_halfms_vs_onems_max_angle_error_deg": 0.02296546184245376,
+  "body_halfms_vs_onems_max_projected_point_error_actor_px": 0.012341903679597976,
+  "neural_refinement": {
+    "motor_max_abs_error_hz": 1.087667806218093,
+    "channel_max_abs_error_hz": 0.5239128160005855,
+    "motor_rmse_hz": 0.05859645211118438,
+    "channel_rmse_hz": 0.0383058024185225
+  },
+  "causal_controls": {
+    "noDN": {
+      "joint_ptp_degrees": 0.0,
+      "projected_point_ptp_actor_px": 3.410605131648481e-13,
+      "channel_ptp_hz": 0.0
+    },
+    "noE1": {
+      "joint_ptp_degrees": 0.0,
+      "projected_point_ptp_actor_px": 2.984279490192421e-13,
+      "channel_ptp_hz": 0.0
+    },
+    "noE2": {
+      "joint_ptp_degrees": 0.0,
+      "projected_point_ptp_actor_px": 3.410605131648481e-13,
+      "channel_ptp_hz": 2.412076107351642e-85
+    }
+  },
+  "production_constructor_exact_scratch_800_samples": true,
+  "unchanged_mechanics": true,
+  "unchanged_renderer": true,
+  "limitations": [
+    "Static strong excitability tuning is an uncalibrated simulation experiment, not a measured drug effect or measured pleasure.",
+    "Movement remains principally front-knee motion; floor contacts constrain feet and overall translation remains tiny.",
+    "DN350 lowers descending drive compared with prior400 while sensitivity is raised on24motorneurons; simply increasing descending current saturated activity or gaveweakmovement."
+  ]
+}

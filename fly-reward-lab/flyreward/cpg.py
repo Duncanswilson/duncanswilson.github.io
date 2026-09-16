@@ -38,10 +38,26 @@ class FrontCPGCircuit:
     """
 
     def __init__(self, graph: Graph, *, stimulus: float = 400.0,
+                 motor_gain: float = 1.0, motor_bias: float = 0.0,
+                 motor_threshold_scale: float = 1.0,
+                 motor_target: str = "all",
                  silenced_cell_types=(), internal_dt: float = 0.001,
                  asset_path: Path | str = ASSET_PATH):
         if not np.isfinite(stimulus) or not 0 <= stimulus <= 2000:
             raise ValueError("CPG tonic stimulus must be finite and between 0 and 2000")
+        for name, value, lower, upper in (
+            ("motor_gain", motor_gain, 1.0, 500.0),
+            ("motor_bias", motor_bias, 0.0, 2000.0),
+            ("motor_threshold_scale", motor_threshold_scale, 0.0, 1.0),
+        ):
+            if isinstance(value, (bool, np.bool_)) or not np.isfinite(value) or not lower <= value <= upper:
+                raise ValueError(f"{name} must be finite and between {lower} and {upper}")
+        target_types = {
+            "trochanter_flexors": ("Tr flexor MN", "Acc. tr flexor MN"),
+            "trochanter_flexors_tibia_extensors": ("Tr flexor MN", "Acc. tr flexor MN", "Ti extensor MN"),
+        }
+        if motor_target != "all" and motor_target not in target_types:
+            raise ValueError("Unknown motor_target selection")
         if not np.isfinite(internal_dt) or internal_dt <= 0 or internal_dt > 0.001:
             raise ValueError("CPG internal timestep must be positive and no larger than 1 ms")
         onset_steps = 0.02 / internal_dt
@@ -65,6 +81,10 @@ class FrontCPGCircuit:
         self.publish_indices = np.arange(len(self.ids), dtype=np.intp)
         self.motor_indices = np.flatnonzero([n["motor"] for n in neurons])
         self.motor_neuron_ids = self.ids[self.motor_indices].copy()
+        self.motor_stimulation_indices = self.motor_indices
+        if motor_target != "all":
+            self.motor_stimulation_indices = self.motor_indices[np.isin(
+                self.cell_types[self.motor_indices], target_types[motor_target])]
         edges = np.asarray(asset["edges"], dtype=np.int64)
         source, target, counts = edges.T
         actual = np.asarray(graph.connectivity[self.graph_indices[target],
@@ -84,13 +104,20 @@ class FrontCPGCircuit:
             raise ValueError("CPG cell sizes must be positive and finite")
         self._gain_over_cap = (params["gain"] / size) / params["rate_cap_hz"]
         self._threshold = params["threshold"] * size
+        # A static neural intervention, applied before the rate nonlinearity.
+        # It changes neither anatomical counts nor the motor-to-body conversion.
+        self._gain_over_cap[self.motor_stimulation_indices] *= motor_gain
+        self._threshold[self.motor_stimulation_indices] *= motor_threshold_scale
         self._tau = float(params["tau_seconds"])
         self.rate_cap_hz = float(params["rate_cap_hz"])
         self.dt = self.internal_dt = float(internal_dt)
         self.stimulus = float(stimulus)
         self._stimulus_onset_tick = int(round(onset_steps))
         self._input = np.where(np.isin(self.ids, params["stimulated_body_ids"]), self.stimulus, 0.)
+        self._input[self.motor_stimulation_indices] += motor_bias
         self._enabled = ~np.isin(self.cell_types, self.silenced_cell_types)
+        for array in (self._gain_over_cap, self._threshold, self._input, self._enabled):
+            array.setflags(write=False)
         self.rates = np.zeros(len(self.ids), dtype=np.float64)
         self.ticks = 0
         self._metadata = {
@@ -99,8 +126,22 @@ class FrontCPGCircuit:
             "internal_dt_seconds": self.dt, "rate_cap_hz": self.rate_cap_hz,
             "stimulus": self.stimulus, "stimulated_body_ids": params["stimulated_body_ids"],
             "stimulus_onset_seconds": params["stimulus_onset_seconds"],
+            "motor_stimulation": {
+                "gain_multiplier": float(motor_gain),
+                "tonic_bias_model_units": float(motor_bias),
+                "threshold_multiplier": float(motor_threshold_scale),
+                "target": motor_target,
+                "target_cell_types": sorted(set(self.cell_types[self.motor_stimulation_indices].tolist())),
+                "target_body_ids": self.ids[self.motor_stimulation_indices].tolist(),
+                "target_count": len(self.motor_stimulation_indices),
+                "excitability_applied_from_seconds": 0.0,
+                "tonic_bias_onset_seconds": params["stimulus_onset_seconds"],
+                "equation": "Motor cells: target=max(200*tanh((gain_multiplier/(200*size))*(signed_synaptic_input+tonic_bias-7.5*size*threshold_multiplier)),0).",
+                "interpretation": "Assumed motor-cell excitability and tonic input; not a measured drug effect. Constant parameters, no imposed rhythm or movement trajectory.",
+            },
             "silenced_cell_types": list(self.silenced_cell_types),
-            "solver": params["solver"], "parameter_choice": params["parameter_choice"],
+            "solver": params["solver"],
+            "parameter_choice": params["parameter_choice"] + " Motor intervention, when non-neutral, overrides the selected cells' baseline gain/threshold/input as declared above.",
             "source_commit": asset["reference"]["commit"], "source_paper": asset["reference"]["paper"],
             "adaptation": asset["adaptation"]["description"], "scope": asset["adaptation"]["scope"],
             "coupling_policy": "Selected circuit rates replace global-model rates; no external feedback into circuit.",

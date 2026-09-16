@@ -1,5 +1,6 @@
 """Causal integration and complete persistence of the hybrid motor/body state."""
 from copy import deepcopy
+from dataclasses import asdict
 import json
 from pathlib import Path
 
@@ -8,7 +9,7 @@ import pytest
 from scipy import sparse
 
 from flyreward.cpg import load_cpg_asset
-from flyreward.cpg_live import CPGSimulation
+from flyreward.cpg_live import CPGConfig, CPGSimulation
 from flyreward.live_model import LiveSimulation, _digest_arrays, _digest_json, _json_text
 from flyreward.server import continuous_config
 from flyreward.types import Graph
@@ -115,3 +116,53 @@ def test_observation_does_not_advance_any_state(graph_and_mapping):
     before={key:value.copy() for key,value in live._state_arrays().items()}
     for _ in range(10):live.snapshot(True)
     for key,value in before.items():np.testing.assert_array_equal(value,live._state_arrays()[key])
+
+
+def test_nondefault_motor_stimulation_restarts_exactly_and_rejects_mismatch(graph_and_mapping,tmp_path):
+    config = CPGConfig(**asdict(continuous_config('cpg')))
+    config.cpg_motor_gain = 20.
+    config.cpg_motor_bias = 50.
+    config.cpg_motor_target = 'trochanter_flexors_tibia_extensors'
+    graph, mapping = graph_and_mapping
+    stimulated = CPGSimulation(graph, config, mapping)
+    stimulated.step(25)
+    path = tmp_path/'stimulated.npz'
+    stimulated.save_checkpoint(path)
+    resumed = CPGSimulation.from_checkpoint(path,graph,mapping)
+    assert resumed.config.cpg_motor_gain == 20.
+    assert resumed.config.cpg_motor_bias == 50.
+    assert resumed.config.cpg_motor_target == 'trochanter_flexors_tibia_extensors'
+    assert_same(stimulated,resumed)
+    stimulated.step(11)
+    resumed.step(4);resumed.step(7)
+    assert_same(stimulated,resumed)
+    frame = resumed.snapshot(True)
+    raw = dict(zip(frame['motor_neuron_ids'],frame['motor_rates_hz']))
+    np.testing.assert_array_equal(frame['channel_rates_hz'],
+        [np.mean([raw[body] for body in ch['body_ids']]) for ch in resumed.channels])
+    mismatched = engine(graph_and_mapping)
+    before = mismatched.snapshot(True)
+    with pytest.raises(ValueError,match='fingerprint'):
+        mismatched.restore_checkpoint(path)
+    assert mismatched.snapshot(True) == before
+
+
+def test_recruited_mode_moves_both_front_legs_after_settling(graph_and_mapping):
+    graph,mapping = graph_and_mapping
+    live = CPGSimulation(graph,continuous_config('cpg','recruited'),mapping)
+    frames = []
+    for step in range(400):
+        live.step()
+        if step >= 200:
+            frames.append(live.body.q[3:].copy())
+    excursion = np.ptp(frames,axis=0)*180/np.pi
+    assert excursion[:2].max() > 2.
+    assert excursion[6:8].max() > 2.
+    # Keeping the last real activation cannot sustain an invented body rhythm.
+    frozen = live.body.activation.copy()
+    settled = []
+    for step in range(300):
+        live.body.advance(frozen,.01)
+        if step >= 200:
+            settled.append(live.body.q.copy())
+    assert np.ptp(settled,axis=0).max() < 1e-5
